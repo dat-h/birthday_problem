@@ -1,0 +1,16 @@
+{
+  "name": "birthday_problem",
+  "version": "1.0.0",
+  "description": "A Phaser-based point and click adventure game.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "phaser": "^3.70.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
