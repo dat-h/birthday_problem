@@ -7,7 +7,10 @@ class BedroomScene extends Phaser.Scene {
 
   preload() {
     // Load the background and character sprite
-    this.load.image('bedroom-bg', 'assets/img/background.png');
+    this.load.image('bedroom-bg-dark', 'assets/img/background-dark-closed.png');
+    this.load.image('bedroom-bg-light', 'assets/img/background-light-closed.png');
+    // this.load.image('bedroom-bg', 'assets/img/background.png');
+    // this.load.image('bedroom-bg', 'assets/img/background.png');
     this.load.spritesheet('bernard-walk', 'assets/img/bernard-sprite.png', {
       frameWidth: 112, // Adjust to your sprite's frame width
       frameHeight: 156 // Adjust to your sprite's frame height
@@ -18,7 +21,7 @@ class BedroomScene extends Phaser.Scene {
 
     // Add and rescale background image to fit the scene (800x600)
     const bg = this.add.image(400, 300, 'bedroom-bg');
-    bg.setDisplaySize(800, 600);
+    //bg.setDisplaySize(800, 600);
 
     // Optionally, add a label for debugging or remove the text below
     // this.add.text(100, 100, 'Point and Click Adventure', { font: '24px Arial', fill: '#fff' });
@@ -54,8 +57,16 @@ class BedroomScene extends Phaser.Scene {
   }
 
   update() {
-    // Stop moving when close to target
+    // Stop moving when close to target, accounting for sprite size
     if (this.player && this.target) {
+      const halfW = this.player.displayWidth / 2;
+      const halfH = this.player.displayHeight / 2;
+      // Clamp the target so the center of the sprite never goes out of bounds
+      const clampedX = Phaser.Math.Clamp(this.target.x, halfW, this.sys.game.config.width - halfW);
+      const clampedY = Phaser.Math.Clamp(this.target.y, halfH, this.sys.game.config.height - halfH);
+      // Move the player only toward the clamped target
+      this.target.x = clampedX;
+      this.target.y = clampedY;
       const distance = Phaser.Math.Distance.Between(
         this.player.x, this.player.y,
         this.target.x, this.target.y
