@@ -17,7 +17,8 @@ class TitleScene extends Phaser.Scene {
     const centerY = cam.height / 2;
 
     // Add and center the title image
-    this.add.image(centerX, centerY - 150, 'title-img').setOrigin(0.5);
+    const title = this.add.image(centerX, centerY - 150, 'title-img').setOrigin(0.5);
+    title.setDisplaySize(300, 300);
 
     const startText = this.add.text(centerX, centerY, 'Start', { font: '32px Arial', fill: '#fff' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     const optionsText = this.add.text(centerX, centerY + 70, 'Options', { font: '32px Arial', fill: '#fff' }).setOrigin(0.5).setInteractive({ useHandCursor: true });

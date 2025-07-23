@@ -7,7 +7,7 @@ const config = {
   type: Phaser.AUTO,
     width: 800,
     height: 600,
-    backgroundColor: '#222',
+    backgroundColor: '#808',
     physics: {
         default: 'arcade',
         arcade: {
@@ -19,7 +19,7 @@ const config = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
-  scene: [TitleScene, BedroomScene]
+  scene: [BedroomScene]
 };
 
 const game = new Phaser.Game(config);
