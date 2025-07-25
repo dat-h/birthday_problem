@@ -1,156 +1,21 @@
-// Returns the closest point on the edge of a polygon to a given point (expects polygon and a {x, y} object)
-function GetClosestPoint(shape, point) {
-  let pts;
-  // If shape is a rectangle, convert to 4 points
-  if (shape instanceof Phaser.Geom.Rectangle) {
-    pts = [
-      { x: shape.x, y: shape.y },
-      { x: shape.x + shape.width, y: shape.y },
-      { x: shape.x + shape.width, y: shape.y + shape.height },
-      { x: shape.x, y: shape.y + shape.height }
-    ];
-  } else if (shape instanceof Phaser.Geom.Polygon) {
-    pts = shape.points;
-  } else {
-    throw new Error('GetClosestPoint: shape must be Polygon or Rectangle');
-  }
-  let minDist = Infinity;
-  let closestPoint = { x: point.x, y: point.y };
-  for (let i = 0; i < pts.length; i++) {
-    const a = pts[i];
-    const b = pts[(i + 1) % pts.length];
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const lengthSq = dx * dx + dy * dy;
-    let t = ((point.x - a.x) * dx + (point.y - a.y) * dy) / lengthSq;
-    t = Phaser.Math.Clamp(t, 0, 1);
-    const px = a.x + t * dx;
-    const py = a.y + t * dy;
-    const dist = Phaser.Math.Distance.Between(point.x, point.y, px, py);
-    if (dist < minDist) {
-      minDist = dist;
-      closestPoint = { x: px, y: py };
-    }
-  }
-  return closestPoint;
-}
+
 import Phaser from 'phaser';
+import ClickableObject from './ClickableObject.js';
+import { GetClosestPoint } from './ClickableObject.js';
+import InventoryOverlay from './InventoryOverlay.js';
 
-// Modular class for clickable scene objects
-class ClickableObject {
-  setBodyOffset(offsetX, offsetY) {
-    this.sprite.body.setOffset(offsetX, offsetY);
-    // Update debug graphics position to match new body offset
-    const body = this.sprite.body;
-    this.debugGraphics.clear();
-    this.debugGraphics.lineStyle(2, 0xff0000, 1);
-    this.debugGraphics.strokeRect(
-      body.x,
-      body.y,
-      body.width,
-      body.height
-    );
-  }  
-  constructor(scene, x, y, displayWidth, displayHeight, bodyWidth, bodyHeight, texture = 'invisible', onArrive, collides = true) {
-    this.scene = scene;
-    this.sprite = scene.physics.add.staticSprite(x, y, texture);
-    this.sprite.setOrigin(0.5, 0.5);
-    this.sprite.displayWidth = displayWidth;
-    this.sprite.displayHeight = displayHeight;
-    this.sprite.body.setSize(bodyWidth, bodyHeight);
-    this.sprite.body.setOffset(-bodyWidth / 2, -bodyHeight / 2);
-    this.sprite.setInteractive();
-    this.sprite.setDepth(y);
-
-
-    // Debug graphics
-    const debugColor = 0xff0000;
-    this.debugGraphics = scene.add.graphics();
-    this.debugGraphics.setDepth(9999);
-    this.debugGraphics.setVisible(scene.DEBUG_GRAPHICS);
-    this.debugGraphics.lineStyle(2, debugColor, 1);
-    this.debugGraphics.strokeRect(x - bodyWidth / 2, y - bodyHeight / 2, bodyWidth, bodyHeight);
-
-    this.onArrive = onArrive;
-    this.collides = collides;
-
-    // Pointer event
-    this.sprite.on('pointerdown', (pointer) => {
-      const rect = new Phaser.Geom.Rectangle(
-        this.sprite.body.x,
-        this.sprite.body.y,
-        bodyWidth,
-        bodyHeight
-      );
-
-      const closest = GetClosestPoint(rect, scene.player);
-      scene.target.x = closest.x;
-      scene.target.y = closest.y;
-      scene.clickedObject = this;
-      scene.message.setText('...');
-      scene.physics.moveToObject(scene.player, scene.target, 200);
-      scene.player.anims.play('walk', true);
-      scene.player.setFlipX(closest.x < scene.player.x);
-
-      // Create a Graphics object (only once, ideally in create())
-      const graphics = scene.add.graphics();
-      // Set fill style to blue (RGB) with full opacity
-      graphics.fillStyle(0x0000ff, 1);
-      graphics.setVisible(scene.DEBUG_GRAPHICS);
-
-      // Draw the rectangle
-      graphics.fillRectShape(rect);
-
-      // Fade out after 1 second
-      scene.tweens.add({
-        targets: graphics,
-        alpha: 0,
-        duration: 200,      // fade duration in ms
-        delay: 50,        // wait 1 second before starting fade
-        onComplete: () => graphics.destroy()
-      });
-
-
-    });
-  }
-
-}
 
 class BedroomScene extends Phaser.Scene {
   constructor() {
     super('BedroomScene');
-    this.DEBUG_GRAPHICS = false;
+    this.DEBUG_GRAPHICS = true;
   }
 
   preload() {
-    // invisible
-    this.load.image('invisible', 'assets/img/1x1.png');
-
-    // Load the background
-    this.load.image('bedroom-bg-dark', 'assets/img/background-dark-closed.png');
-    this.load.image('bedroom-bg-light', 'assets/img/background-light-closed.png');
-
-    // Load the scene items
-    this.load.image('bed-sprite', 'assets/img/bed-sprite.png');
-
-
-    // Load the inventory items
-    this.load.image('flashlight-off', 'assets/img/flashlight-off.png');
-    this.load.image('flashlight-on', 'assets/img/flashlight-on.png');
-    this.load.image('dirty-sock', 'assets/img/dirty-sock.png');
-    this.load.image('batteries', 'assets/img/d_battery.png');
-    this.load.image('punch-card', 'assets/img/punch-card.png');
-
-    //Load the character
-    this.load.image('bernard-face', 'assets/img/bernard-face.png');
-
-    this.load.spritesheet('bernard-walk', 'assets/img/bernard-sprite.png', {
-      frameWidth: 156, // Adjust to your sprite's frame width
-      frameHeight: 218 // Adjust to your sprite's frame height
-    });
   }
 
-  create() {
+
+  createDebugGraphics() {
     // Debug graphics for player's physics body
     this.playerDebugGraphics = this.add.graphics();
     this.playerDebugGraphics.setDepth(9999); // Ensure it's above everything
@@ -164,19 +29,24 @@ class BedroomScene extends Phaser.Scene {
       padding: { x: 6, y: 2 }
     }).setOrigin(0, 0).setDepth(9999);
     this.distanceDebugText.setVisible( this.DEBUG_GRAPHICS);
+
     // Graphics for target indicator
     this.targetGraphics = this.add.graphics();
     this.targetGraphics.setDepth(9998); // Just below debug text
     this.targetGraphics.setVisible(this.DEBUG_GRAPHICS);
 
-    // Add and rescale background image to fit the scene (800x600), positioned at the top
-    const bg = this.add.image(400, -60, 'bedroom-bg-light').setOrigin(0.5, 0);
-    bg.setDepth(-1000); // Ensure background is behind all objects
+    // Optional: debug draw the floor area
+    this.floorGraphics = this.add.graphics();
+    this.floorGraphics.setVisible(this.DEBUG_GRAPHICS);
+    this.floorGraphics.lineStyle(2, 0x00ff00, 1);
+  }
 
+  createPlayer() {
     // Create the character sprite in the center using Arcade Physics
     this.player = this.physics.add.sprite(400, 240, 'bernard-walk', 0);
     this.player.setDepth(this.player.y);
     this.player.setCollideWorldBounds(true);
+
     // Set player's physics body to only cover the foot area
     // Example: width = 1/4 displayWidth, height = 1/6 displayHeight, positioned at the bottom center
     const footWidth = this.player.displayWidth / 4;
@@ -186,12 +56,13 @@ class BedroomScene extends Phaser.Scene {
       (this.player.displayWidth - footWidth) / 2,
       (this.player.displayHeight - footHeight) /2 + 25 
     );
+  }
 
+  createInventory() {
     // Add Bernard's face sprite at (0, 500)
     this.bernardFace = this.add.image(5, 530, 'bernard-face')
       .setOrigin(0, 0.5)
       .setDepth(10001);
-
 
     // Message text for clickable interactions (word wrap, max width 500)
     this.message = this.add.text(100, 530, '...', {
@@ -203,22 +74,36 @@ class BedroomScene extends Phaser.Scene {
       wordWrap: { width: 200, useAdvancedWrap: true }
     }).setOrigin(0, 0.5).setDepth(20000);
 
-    // Create walk animation (assumes right-facing walk frames 0-5)
-    this.anims.create({
-      key: 'walk',
-      frames: this.anims.generateFrameNumbers('bernard-walk', { start: 0, end: 5 }),
-      frameRate: 8,
-      repeat: -1
-    });
-
-    this.target = new Phaser.Math.Vector2(this.player.x, this.player.y);
-
 
     // Add the inventory 
     // Inventory overlay setup
     if (!window.inventoryItems) window.inventoryItems = [];
     // Example inventory item objects
-    const inventoryItemsDict = {
+
+
+    this.inventoryOverlay = this.add.graphics();
+    this.inventoryOverlay.setDepth(10000);
+    this.inventoryOverlay.fillStyle(0x000000, 0.55);
+    this.inventoryOverlay.fillRect(0, 470, 800, 130);
+    this.inventoryOverlay.lineStyle(3, 0xffffff, 1);
+    this.inventoryOverlay.strokeRect(0, 470, 800, 130);
+    this.inventoryOverlay.setScrollFactor(0);
+
+    // Inventory item icons
+    this.inventoryIconSprites = [ ];
+    this.selectedInventoryIndex = null;
+    this.inventoryMessageText = this.add.text(400, 390, '', {
+      font: '20px Arial',
+      fill: '#fff',
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      padding: { x: 10, y: 6 },
+      align: 'center'
+    }).setOrigin(0.5, 1).setDepth(10001);
+    this.inventoryMessageText.setVisible(false);
+  }
+  
+  createInventoryItems() {
+        this.inventoryItemsDict = {
       'flashlight-off': {
         key: 'flashlight-off',
         message: "It's a flashlight.",
@@ -248,51 +133,16 @@ class BedroomScene extends Phaser.Scene {
         actions: {}
       }      
     };
-    window.inventoryItems.push( inventoryItemsDict['batteries']);
-    window.inventoryItems.push( inventoryItemsDict['punch-card']);
+    window.inventoryItems.push( this.inventoryItemsDict['batteries']);
+    window.inventoryItems.push( this.inventoryItemsDict['punch-card']);
+  }
 
-    this.inventoryOverlay = this.add.graphics();
-    this.inventoryOverlay.setDepth(10000);
-    this.inventoryOverlay.fillStyle(0x000000, 0.55);
-    this.inventoryOverlay.fillRect(0, 470, 800, 130);
-    this.inventoryOverlay.lineStyle(3, 0xffffff, 1);
-    this.inventoryOverlay.strokeRect(0, 470, 800, 130);
-    this.inventoryOverlay.setScrollFactor(0);
-
-    // Inventory item icons
-    this.inventoryIconSprites = [ ];
-    this.selectedInventoryIndex = null;
-    this.inventoryMessageText = this.add.text(400, 390, '', {
-      font: '20px Arial',
-      fill: '#fff',
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      padding: { x: 10, y: 6 },
-      align: 'center'
-    }).setOrigin(0.5, 1).setDepth(10001);
-    this.inventoryMessageText.setVisible(false);
-
-
-    // Define the walkable floor area as a polygon (adjust points as needed)
-    // Example: a trapezoid floor area
-    this.floorPolygon = new Phaser.Geom.Polygon([
-      { x: 0, y: 533 - 120 - 60}, // bottom left
-      { x: 800, y: 533 - 120 - 60}, // bottom right
-      { x: 680, y: 280 - 60 }, // top right
-      { x: 120, y: 280 - 60 }  // top left
-    ]);
-    // Optional: debug draw the floor area
-    this.floorGraphics = this.add.graphics();
-    this.floorGraphics.setVisible(this.DEBUG_GRAPHICS);
-    this.floorGraphics.lineStyle(2, 0x00ff00, 1);
-    this.floorGraphics.strokePoints(this.floorPolygon.points, true);
-
-    // Add clickable objects
-    this.clickableObjects = [];
+  createSceneObjects() {
 
     // Bed 
     this.bed = new ClickableObject(
       this, 148, 320, 296, 133, 250, 40, 'bed-sprite',
-      () => this.message.setText("No. I just woke up"),
+      () => this.inventoryOverlay.setMessage("No. I just woke up"),
       true // collides
     );
     this.bed.setBodyOffset(30, 40)
@@ -302,11 +152,11 @@ class BedroomScene extends Phaser.Scene {
       this, 130, 380, 80, 20, 80, 20, 'invisible',
       () => {
         if (this.foundsock ) {
-          this.message.setText("Nothing here");
+          this.inventoryOverlay.setMessage("Nothing here");
         } else {
-          this.message.setText("Ooh... I found something!");
-          window.inventoryItems.push(inventoryItemsDict['dirty-sock']);
-          this.drawInventory();
+          this.inventoryOverlay.setMessage("Ooh... I found something!");
+          window.inventoryItems.push(this.inventoryItemsDict['dirty-sock']);
+          // this.drawInventory();
           this.foundsock = true;
         }
       },
@@ -316,7 +166,7 @@ class BedroomScene extends Phaser.Scene {
     // Clock
     this.clock = new ClickableObject(
       this, 370, 60, 40, 40, 5, 5, 'invisible',
-      () => this.message.setText("uhh.. 4:55?.. I think the clock is broken."),
+      () => this.inventoryOverlay.setMessage("uhh.. 4:55?.. I think the clock is broken."),
       false // collides
     );
     this.clock.setBodyOffset(0, 120)
@@ -325,14 +175,23 @@ class BedroomScene extends Phaser.Scene {
     // Lamp
     this.lamp = new ClickableObject(
       this, 130, 220, 40, 80, 40, 80, 'invisible',
-      () => this.message.setText("I'm afraid of the dark"),
+      () => this.inventoryOverlay.setMessage("I'm afraid of the dark"),
       true // collides
     );    
+
+    // Bathroom Door 
+    this.bathroomdoor = new ClickableObject(
+      this, 365, 220, 80, 180, 5, 5, 'invisible',
+      () => {
+        this.scene.launch('BathroomScene');
+      },
+      false // collides
+    );
 
     // Mirror
     this.mirror = new ClickableObject(
       this, 180, 140, 40, 40, 5, 5, 'invisible',
-      () => this.message.setText("I can't talk to myself"),
+      () => this.inventoryOverlay.setMessage("I can't talk to myself"),
       false // collides
     ); 
     this.mirror.setBodyOffset(0, 40)
@@ -341,35 +200,37 @@ class BedroomScene extends Phaser.Scene {
     // Box
     this.box = new ClickableObject(
       this, 620, 270, 80, 60, 80, 60, 'invisible',
-      () => this.message.setText("the box is locked"),
+      () => this.inventoryOverlay.setMessage("the box is locked"),
       true // collides
     );        
 
     // Flashlight 
     this.flashlight = new ClickableObject(
-      this, 350, 420, 60, 60, 60, 60, 'flashlight-off',
+      this, 350, 340, 60, 60, 60, 60, 'flashlight-off',
       () => {
-      this.message.setText("it's a flashlight");
-      window.inventoryItems.push(inventoryItemsDict['flashlight-off']);
+      this.inventoryOverlay.setMessage("it's a flashlight");
+      window.inventoryItems.push(this.inventoryItemsDict['flashlight-off']);
       // Remove flashlight from scene
       this.flashlight.sprite.destroy();
       this.clickableObjects = this.clickableObjects.filter(obj => obj !== this.flashlight);
-      this.drawInventory();
+      // this.drawInventory();
       },
       false // collides
     );        
     this.flashlight.setBodyOffset(0, 0);
     this.flashlight.sprite.setDepth( this.flashlight.sprite.y - 50 );
+    // Add clickable objects
+    this.clickableObjects = [];
+
 
     this.clickableObjects.push(this.flashlight);
     this.clickableObjects.push(this.bed);
     this.clickableObjects.push(this.underbed);
     this.clickableObjects.push(this.clock);
     this.clickableObjects.push(this.lamp);
+    this.clickableObjects.push(this.bathroomdoor);
     this.clickableObjects.push(this.mirror);
     this.clickableObjects.push(this.box);
-
-    // Add more clickable objects here as needed
 
     // Enable collision between player and clickable objects that have collides=true
     for (const obj of this.clickableObjects) {
@@ -377,7 +238,36 @@ class BedroomScene extends Phaser.Scene {
         this.physics.add.collider(this.player, obj.sprite);
       }
     }
+  }
 
+  create() {
+    this.createDebugGraphics();
+
+    // Add background image to fit the scene (800x600), positioned at the top
+    const bg = this.add.image(400, -60, 'bedroom-bg-light').setOrigin(0.5, 0);
+    bg.setDepth(-1000); // Ensure background is behind all objects
+   
+    this.createPlayer();    
+    this.target = new Phaser.Math.Vector2(this.player.x, this.player.y);
+
+
+    // Inventory overlay utility
+    this.inventoryOverlay = new InventoryOverlay(this);
+    // this.createInventory();
+    this.createInventoryItems();
+
+    // Define the walkable floor area as a polygon (adjust points as needed)
+    // Example: a trapezoid floor area
+    this.floorPolygon = new Phaser.Geom.Polygon([
+      { x: 0, y: 533 - 120 - 60}, // bottom left
+      { x: 800, y: 533 - 120 - 60}, // bottom right
+      { x: 680, y: 280 - 60 }, // top right
+      { x: 120, y: 280 - 60 }  // top left
+    ]);
+    this.floorGraphics.strokePoints(this.floorPolygon.points, true);
+
+    this.createSceneObjects();
+    
 
     // Move player to pointer on click (except clickable objects)
     this.input.on('pointerdown', (pointer) => {
@@ -412,9 +302,11 @@ class BedroomScene extends Phaser.Scene {
       } else {
         this.player.setFlipX(false);
       }
-      this.message.setText('...');
-      this.selectedInventoryIndex = null;
-      this.drawInventory();
+
+      this.inventoryOverlay.setMessage('...');
+      this.inventoryOverlay.selectedIndex = null;
+      this.inventoryOverlay.draw();
+
       this.physics.moveToObject(this.player, this.target, 200);
       this.player.anims.play('walk', true);
       this.clickedObject = null;
@@ -483,89 +375,92 @@ class BedroomScene extends Phaser.Scene {
         }
       }
     }
+    this.inventoryOverlay.draw();
+
+
     // Redraw inventory if items changed (simple check)
-    if (window.inventoryItems && this.inventoryIconSprites.length !== window.inventoryItems.length) {
-      this.drawInventory();
-    }
+    // if (window.inventoryItems && this.inventoryIconSprites.length !== window.inventoryItems.length) {
+    //   this.drawInventory();
+    // }
   }
 
-  drawInventory() {
-    // Remove old icons
-    for (const s of this.inventoryIconSprites) s.destroy();
-    this.inventoryIconSprites = [];
-    const items = window.inventoryItems;
-    const iconSize = 64;
-    const padding = 24;
-    const itemsPerRow = 5;
-    const startX = 375;
-    const startY = 500;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      const row = Math.floor(i / itemsPerRow);
-      const col = i % itemsPerRow;
-      const x = startX + col * (iconSize + padding);
-      const y = startY + row * (iconSize);
+//   drawInventory() {
+//     // Remove old icons
+//     for (const s of this.inventoryIconSprites) s.destroy();
+//     this.inventoryIconSprites = [];
+//     const items = window.inventoryItems;
+//     const iconSize = 64;
+//     const padding = 24;
+//     const itemsPerRow = 5;
+//     const startX = 375;
+//     const startY = 500;
+//     for (let i = 0; i < items.length; i++) {
+//       const item = items[i];
+//       const row = Math.floor(i / itemsPerRow);
+//       const col = i % itemsPerRow;
+//       const x = startX + col * (iconSize + padding);
+//       const y = startY + row * (iconSize);
 
-      // Draw item icon
-      const sprite = this.add.image(x, y, item.key)
-        .setDisplaySize(iconSize, iconSize)
-        .setDepth(10001)
-        .setInteractive({ useHandCursor: true });
+//       // Draw item icon
+//       const sprite = this.add.image(x, y, item.key)
+//         .setDisplaySize(iconSize, iconSize)
+//         .setDepth(10001)
+//         .setInteractive({ useHandCursor: true });
 
-      // Highlight if selected
-      sprite.tintFill = true;
-      if (this.selectedInventoryIndex === i) {
-        sprite.setTint(0x0000ff);
-      } else {
-        sprite.clearTint();
-      }
-      // Single click: select/highlight or combine
-      sprite.on('pointerdown', () => {
-        if (this.selectedInventoryIndex !== null && this.selectedInventoryIndex !== i) {
-          // Try to combine selected item with this one
-          const selectedItem = items[this.selectedInventoryIndex];
-          let combineAction = selectedItem.actions?.combine?.[item.key];
-          if (!combineAction) {
-            combineAction = item.actions?.combine?.[selectedItem.key];
-          }
-          if (combineAction) {
-            // Remove both items, add result
-            window.inventoryItems = items.filter((_, idx) => idx !== this.selectedInventoryIndex && idx !== i);
-            window.inventoryItems.push({
-              key: combineAction.result,
-              message: combineAction.message,
-              actions: {} // Could be extended for more combos
-            });
-            this.selectedInventoryIndex = null;
-            this.message.setText(combineAction.message);
-            this.drawInventory();
-          } else {
-            // Invalid combination
-            this.message.setText("Those don't go together!");
-            this.selectedInventoryIndex = null;
-            this.drawInventory();
-          }
-        } else {
-          // Just select/highlight
-          this.selectedInventoryIndex = i;
-          this.drawInventory();
-        }
-      });
-      // Double click: show message
-      sprite.on('pointerup', (pointer) => {
-        if (pointer.getDuration() < 300 && pointer.downElement === pointer.upElement) {
-          if (pointer.event.detail === 2) {
-            this.message.setText(item.message);
-            // this.message.setVisible(true);
-            // this.time.delayedCall(1500, () => {
-            //   this.inventoryMessageText.setVisible(false);
-            // });
-          }
-        }
-      });
-      this.inventoryIconSprites.push(sprite);
-    }
-  }
+//       // Highlight if selected
+//       sprite.tintFill = true;
+//       if (this.selectedInventoryIndex === i) {
+//         sprite.setTint(0x0000ff);
+//       } else {
+//         sprite.clearTint();
+//       }
+//       // Single click: select/highlight or combine
+//       sprite.on('pointerdown', () => {
+//         if (this.selectedInventoryIndex !== null && this.selectedInventoryIndex !== i) {
+//           // Try to combine selected item with this one
+//           const selectedItem = items[this.selectedInventoryIndex];
+//           let combineAction = selectedItem.actions?.combine?.[item.key];
+//           if (!combineAction) {
+//             combineAction = item.actions?.combine?.[selectedItem.key];
+//           }
+//           if (combineAction) {
+//             // Remove both items, add result
+//             window.inventoryItems = items.filter((_, idx) => idx !== this.selectedInventoryIndex && idx !== i);
+//             window.inventoryItems.push({
+//               key: combineAction.result,
+//               message: combineAction.message,
+//               actions: {} // Could be extended for more combos
+//             });
+//             this.selectedInventoryIndex = null;
+//             this.message.setText(combineAction.message);
+//             this.drawInventory();
+//           } else {
+//             // Invalid combination
+//             this.message.setText("Those don't go together!");
+//             this.selectedInventoryIndex = null;
+//             this.drawInventory();
+//           }
+//         } else {
+//           // Just select/highlight
+//           this.selectedInventoryIndex = i;
+//           this.drawInventory();
+//         }
+//       });
+//       // Double click: show message
+//       sprite.on('pointerup', (pointer) => {
+//         if (pointer.getDuration() < 300 && pointer.downElement === pointer.upElement) {
+//           if (pointer.event.detail === 2) {
+//             this.message.setText(item.message);
+//             // this.message.setVisible(true);
+//             // this.time.delayedCall(1500, () => {
+//             //   this.inventoryMessageText.setVisible(false);
+//             // });
+//           }
+//         }
+//       });
+//       this.inventoryIconSprites.push(sprite);
+//     }
+//   }
 
 }
 

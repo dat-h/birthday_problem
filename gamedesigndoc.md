@@ -118,3 +118,7 @@ The player can access a menu to pause the game at any time.  The menu shows opti
 Testing method: Browser-based demo
 Packaging: Bundle all assets/code
 Distribution: GitHub page
+
+
+
+Click on door - Publisher's clearing house knocking on door - asking for name.

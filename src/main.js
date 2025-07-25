@@ -2,6 +2,9 @@
 import Phaser from 'phaser';
 import TitleScene from './TitleScene.js';
 import BedroomScene from './BedroomScene.js';
+import BathroomScene from './BathroomScene.js';
+import PreloadScene from './PreloadScene.js';
+
 
 const config = {
   type: Phaser.AUTO,
@@ -19,7 +22,7 @@ const config = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
-  scene: [BedroomScene]
+  scene: [PreloadScene, BedroomScene, BathroomScene]
 };
 
 const game = new Phaser.Game(config);
