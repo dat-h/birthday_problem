@@ -79,11 +79,11 @@ class ClickableObject {
         bodyWidth,
         bodyHeight
       );
-      const closest = { x: x, y: y };
+      const closest = GetClosestPoint(rect, scene.player);
       scene.target.x = closest.x;
       scene.target.y = closest.y;
       scene.clickedObject = this;
-    //   scene.message.setText('...');
+
       scene.inventoryOverlay.setMessage('...');
       scene.physics.moveToObject(scene.player, scene.target, 200);
       if (scene.player.anims && scene.player.anims.play) {

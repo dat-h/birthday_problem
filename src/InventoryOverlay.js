@@ -18,6 +18,7 @@ class InventoryOverlay {
     this.inventoryItems = window.inventoryItems ?? [];
     window.inventoryItems = this.inventoryItems; // ensure global
     this.selectedIndex = null;
+    this.selectedItem = null;
     this.iconSprites = [];
 
 
@@ -40,7 +41,7 @@ class InventoryOverlay {
         wordWrap: { width: 200, useAdvancedWrap: true },
         depth: this.depth + 1
       }
-    ).setOrigin(0.5, 1).setDepth(this.depth + 1);
+    ).setOrigin(0, 0.5).setDepth(this.depth + 1);
     // this.messageText.setVisible(false);
     this._drawOverlay();
     this.draw();
@@ -100,6 +101,7 @@ class InventoryOverlay {
       }
       sprite.on('pointerdown', () => {
         if (this.selectedIndex !== null && this.selectedIndex !== i) {
+          this.selectedItem = items[this.selectedIndex];
           const selectedItem = items[this.selectedIndex];
           let combineAction = selectedItem.actions?.combine?.[item.key];
           if (!combineAction) {
@@ -146,3 +148,39 @@ class InventoryOverlay {
 }
 
 export default InventoryOverlay;
+
+export const inventoryItemsDict = {
+      'flashlight-off': {
+        key: 'flashlight-off',
+        message: "It's a flashlight.",
+        actions: {
+          combine: {
+            'batteries': { result: 'flashlight-on', message: 'You put the batteries in the flashlight.' }
+          }
+        }
+      },
+      'batteries': {
+        key: 'batteries',
+        message: "A pair of batteries.",
+        actions: {
+          combine: {
+            'flashlight-off': { result: 'flashlight-on', message: 'You put the batteries in the flashlight.' }
+          }
+        }
+      },
+      'dirty-sock': {
+        key: 'dirty-sock',
+        message: "A dirty sock. Gross!",
+        actions: {}
+      },
+      'punch-card': {
+        key: 'punch-card',
+        message: "A punch card",
+        actions: {}
+      },
+      'key': {
+        key: 'key',
+        message: "Where does this key go?",
+        actions: {}
+      }
+    };

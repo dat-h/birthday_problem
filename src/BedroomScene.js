@@ -2,43 +2,19 @@
 import Phaser from 'phaser';
 import ClickableObject from './ClickableObject.js';
 import { GetClosestPoint } from './ClickableObject.js';
+import { inventoryItemsDict } from './InventoryOverlay.js';
+
 import InventoryOverlay from './InventoryOverlay.js';
+import DebuggingObject from './DebuggingObject.js';
 
 
 class BedroomScene extends Phaser.Scene {
   constructor() {
     super('BedroomScene');
-    this.DEBUG_GRAPHICS = true;
+    this.DEBUG_GRAPHICS = false;
   }
 
   preload() {
-  }
-
-
-  createDebugGraphics() {
-    // Debug graphics for player's physics body
-    this.playerDebugGraphics = this.add.graphics();
-    this.playerDebugGraphics.setDepth(9999); // Ensure it's above everything
-    this.playerDebugGraphics.setVisible(this.DEBUG_GRAPHICS);
-
-    // Debug text for player-target distance
-    this.distanceDebugText = this.add.text(10, 10, 'Distance: 0', {
-      font: '16px Arial',
-      fill: '#ff0',
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      padding: { x: 6, y: 2 }
-    }).setOrigin(0, 0).setDepth(9999);
-    this.distanceDebugText.setVisible( this.DEBUG_GRAPHICS);
-
-    // Graphics for target indicator
-    this.targetGraphics = this.add.graphics();
-    this.targetGraphics.setDepth(9998); // Just below debug text
-    this.targetGraphics.setVisible(this.DEBUG_GRAPHICS);
-
-    // Optional: debug draw the floor area
-    this.floorGraphics = this.add.graphics();
-    this.floorGraphics.setVisible(this.DEBUG_GRAPHICS);
-    this.floorGraphics.lineStyle(2, 0x00ff00, 1);
   }
 
   createPlayer() {
@@ -58,106 +34,55 @@ class BedroomScene extends Phaser.Scene {
     );
   }
 
-  createInventory() {
-    // Add Bernard's face sprite at (0, 500)
-    this.bernardFace = this.add.image(5, 530, 'bernard-face')
-      .setOrigin(0, 0.5)
-      .setDepth(10001);
-
-    // Message text for clickable interactions (word wrap, max width 500)
-    this.message = this.add.text(100, 530, '...', {
-      font: '24px Arial',
-      fill: '#fff',
-      backgroundColor: 'rgba(0,0,0,1)',
-      padding: { x: 10, y: 6 },
-      align: 'left',
-      wordWrap: { width: 200, useAdvancedWrap: true }
-    }).setOrigin(0, 0.5).setDepth(20000);
-
-
-    // Add the inventory 
-    // Inventory overlay setup
-    if (!window.inventoryItems) window.inventoryItems = [];
-    // Example inventory item objects
-
-
-    this.inventoryOverlay = this.add.graphics();
-    this.inventoryOverlay.setDepth(10000);
-    this.inventoryOverlay.fillStyle(0x000000, 0.55);
-    this.inventoryOverlay.fillRect(0, 470, 800, 130);
-    this.inventoryOverlay.lineStyle(3, 0xffffff, 1);
-    this.inventoryOverlay.strokeRect(0, 470, 800, 130);
-    this.inventoryOverlay.setScrollFactor(0);
-
-    // Inventory item icons
-    this.inventoryIconSprites = [ ];
-    this.selectedInventoryIndex = null;
-    this.inventoryMessageText = this.add.text(400, 390, '', {
-      font: '20px Arial',
-      fill: '#fff',
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      padding: { x: 10, y: 6 },
-      align: 'center'
-    }).setOrigin(0.5, 1).setDepth(10001);
-    this.inventoryMessageText.setVisible(false);
-  }
-  
   createInventoryItems() {
-        this.inventoryItemsDict = {
-      'flashlight-off': {
-        key: 'flashlight-off',
-        message: "It's a flashlight.",
-        actions: {
-          combine: {
-            'batteries': { result: 'flashlight-on', message: 'You put the batteries in the flashlight.' }
-          }
-        }
-      },
-      'batteries': {
-        key: 'batteries',
-        message: "A pair of batteries.",
-        actions: {
-          combine: {
-            'flashlight-off': { result: 'flashlight-on', message: 'You put the batteries in the flashlight.' }
-          }
-        }
-      },
-      'dirty-sock': {
-        key: 'dirty-sock',
-        message: "A dirty sock. Gross!",
-        actions: {}
-      },
-      'punch-card': {
-        key: 'punch-card',
-        message: "A punch card",
-        actions: {}
-      }      
-    };
-    window.inventoryItems.push( this.inventoryItemsDict['batteries']);
-    window.inventoryItems.push( this.inventoryItemsDict['punch-card']);
+
+    window.inventoryItems.push( inventoryItemsDict['batteries']);
+    window.inventoryItems.push( inventoryItemsDict['punch-card']);
+    window.inventoryItems.push( inventoryItemsDict['key']);
   }
 
   createSceneObjects() {
+    // Helper to get selected inventory item
+    const getSelectedInventoryItem = () => {
+      const idx = this.inventoryOverlay.selectedIndex;
+      if (idx === null) return null;
+      return this.inventoryOverlay.getItems()[idx];
+    };
 
     // Bed 
     this.bed = new ClickableObject(
       this, 148, 320, 296, 133, 250, 40, 'bed-sprite',
-      () => this.inventoryOverlay.setMessage("No. I just woke up"),
+      () => {
+        const selectedItem = getSelectedInventoryItem();
+        if (selectedItem) {
+          this.inventoryOverlay.setMessage("That doesn't work here.");
+          this.inventoryOverlay.selectedIndex = null;
+          this.inventoryOverlay.draw();
+        } else {
+          this.inventoryOverlay.setMessage("No. I just woke up");
+        }
+      },
       true // collides
     );
     this.bed.setBodyOffset(30, 40)
 
-   // Under Bed
+    // Under Bed
     this.underbed = new ClickableObject(
       this, 130, 380, 80, 20, 80, 20, 'invisible',
       () => {
-        if (this.foundsock ) {
-          this.inventoryOverlay.setMessage("Nothing here");
+        const selectedItem = getSelectedInventoryItem();
+        if (selectedItem) {
+          this.inventoryOverlay.setMessage("That doesn't work here.");
+          this.inventoryOverlay.selectedIndex = null;
+          this.inventoryOverlay.draw();
         } else {
-          this.inventoryOverlay.setMessage("Ooh... I found something!");
-          window.inventoryItems.push(this.inventoryItemsDict['dirty-sock']);
-          // this.drawInventory();
-          this.foundsock = true;
+          if (this.foundsock ) {
+            this.inventoryOverlay.setMessage("Nothing here");
+          } else {
+            this.inventoryOverlay.setMessage("Ooh... I found something!");
+            this.inventoryOverlay.addItem( inventoryItemsDict['dirty-sock']);
+            this.foundsock = true;
+          }
         }
       },
       false // collides
@@ -166,7 +91,16 @@ class BedroomScene extends Phaser.Scene {
     // Clock
     this.clock = new ClickableObject(
       this, 370, 60, 40, 40, 5, 5, 'invisible',
-      () => this.inventoryOverlay.setMessage("uhh.. 4:55?.. I think the clock is broken."),
+      () => {
+        const selectedItem = this.inventoryOverlay.selectedItem;
+        if (selectedItem) {
+          this.inventoryOverlay.setMessage("That doesn't work here.");
+          this.inventoryOverlay.selectedIndex = null;
+          this.inventoryOverlay.draw();
+        } else {
+          this.inventoryOverlay.setMessage("uhh.. 4:55?.. I think the clock is broken.");
+        }
+      },
       false // collides
     );
     this.clock.setBodyOffset(0, 120)
@@ -198,18 +132,45 @@ class BedroomScene extends Phaser.Scene {
 
 
     // Box
+    this.boxLocked = true;
     this.box = new ClickableObject(
       this, 620, 270, 80, 60, 80, 60, 'invisible',
-      () => this.inventoryOverlay.setMessage("the box is locked"),
+      () => {
+        const selectedItem = getSelectedInventoryItem();
+        if (this.boxLocked) {
+          if (selectedItem && selectedItem.key === 'key') {
+            // Unlock the box
+            this.boxLocked = false;
+            this.inventoryOverlay.setMessage("You unlocked the box! There was a note inside.");
+            this.inventoryOverlay.removeItemByKey('key');
+            // Optionally add a new item to inventory, e.g. note
+            this.inventoryOverlay.addItem({
+              key: 'note',
+              message: "A mysterious note from the box.",
+              actions: {}
+            });
+            this.inventoryOverlay.selectedIndex = null;
+            this.inventoryOverlay.draw();
+          } else if (selectedItem) {
+            this.inventoryOverlay.setMessage("That doesn't work on the box.");
+            this.inventoryOverlay.selectedIndex = null;
+            this.inventoryOverlay.draw();
+          } else {
+            this.inventoryOverlay.setMessage("the box is locked");
+          }
+        } else {
+          this.inventoryOverlay.setMessage("The box is already unlocked.");
+        }
+      },
       true // collides
     );        
 
     // Flashlight 
     this.flashlight = new ClickableObject(
-      this, 350, 340, 60, 60, 60, 60, 'flashlight-off',
+      this, 350, 420, 60, 60, 60, 60, 'flashlight-off',
       () => {
       this.inventoryOverlay.setMessage("it's a flashlight");
-      window.inventoryItems.push(this.inventoryItemsDict['flashlight-off']);
+      this.inventoryOverlay.addItem( inventoryItemsDict['flashlight-off']);
       // Remove flashlight from scene
       this.flashlight.sprite.destroy();
       this.clickableObjects = this.clickableObjects.filter(obj => obj !== this.flashlight);
@@ -241,7 +202,7 @@ class BedroomScene extends Phaser.Scene {
   }
 
   create() {
-    this.createDebugGraphics();
+    this.debugGraphics = new DebuggingObject(this);
 
     // Add background image to fit the scene (800x600), positioned at the top
     const bg = this.add.image(400, -60, 'bedroom-bg-light').setOrigin(0.5, 0);
@@ -250,11 +211,14 @@ class BedroomScene extends Phaser.Scene {
     this.createPlayer();    
     this.target = new Phaser.Math.Vector2(this.player.x, this.player.y);
 
-
+    // Carry over inventory
+    if (!window.inventoryItems) window.inventoryItems = [];
     // Inventory overlay utility
     this.inventoryOverlay = new InventoryOverlay(this);
     // this.createInventory();
     this.createInventoryItems();
+    this.inventoryOverlay.draw();
+
 
     // Define the walkable floor area as a polygon (adjust points as needed)
     // Example: a trapezoid floor area
@@ -264,11 +228,11 @@ class BedroomScene extends Phaser.Scene {
       { x: 680, y: 280 - 60 }, // top right
       { x: 120, y: 280 - 60 }  // top left
     ]);
-    this.floorGraphics.strokePoints(this.floorPolygon.points, true);
+    // this.floorGraphics.strokePoints(this.floorPolygon.points, true);
+    this.debugGraphics.updateFloorGraphics( this.floorPolygon.points);
 
     this.createSceneObjects();
-    
-
+     
     // Move player to pointer on click (except clickable objects)
     this.input.on('pointerdown', (pointer) => {
       // Prevent movement if clicking inside inventory area
@@ -314,21 +278,6 @@ class BedroomScene extends Phaser.Scene {
   }
 
   update() {
-
-    // Draw player's physics body for debugging
-    if (this.DEBUG_GRAPHICS) {
-      this.playerDebugGraphics.clear();
-      this.playerDebugGraphics.lineStyle(2, 0xff00ff, 1);
-      const body = this.player.body;
-      if (body) {
-        this.playerDebugGraphics.strokeRect(
-          body.x,
-          body.y,
-          body.width,
-          body.height
-        );
-      }
-    }
     if (this.player && this.target) {
       this.player.setDepth(this.player.y+50);
       // If the player's center is outside the floor polygon, stop movement and reset target
@@ -347,23 +296,19 @@ class BedroomScene extends Phaser.Scene {
         this.player.setPosition(bounceX, bounceY);
       }
 
-    // Stop moving when close to target
+      // Stop moving when close to target
       const distance = Phaser.Math.Distance.Between(
         this.player.x, this.player.y,
         this.target.x, this.target.y
       );
-      // Update debug text
-      if (this.distanceDebugText) {
-        this.distanceDebugText.setText(`Distance: ${distance.toFixed(2)}`);
+
+      // Draw player's physics body for debugging
+      if (this.DEBUG_GRAPHICS) {
+        this.debugGraphics.updatePlayer(this.player);
+        this.debugGraphics.updateTarget(this.target);
+        this.debugGraphics.updateDistance(distance);
       }
-      // Draw yellow circle at target position
-      if (this.targetGraphics) {
-        this.targetGraphics.clear();
-        this.targetGraphics.lineStyle(2, 0xffff00, 1);
-        this.targetGraphics.strokeCircle(this.target.x, this.target.y, 16);
-        this.targetGraphics.fillStyle(0xffff00, 0.3);
-        this.targetGraphics.fillCircle(this.target.x, this.target.y, 8);
-      }
+
       if (distance < 50) {
         this.player.body.setVelocity(0, 0);
         this.player.anims.stop();
@@ -375,93 +320,7 @@ class BedroomScene extends Phaser.Scene {
         }
       }
     }
-    this.inventoryOverlay.draw();
-
-
-    // Redraw inventory if items changed (simple check)
-    // if (window.inventoryItems && this.inventoryIconSprites.length !== window.inventoryItems.length) {
-    //   this.drawInventory();
-    // }
   }
-
-//   drawInventory() {
-//     // Remove old icons
-//     for (const s of this.inventoryIconSprites) s.destroy();
-//     this.inventoryIconSprites = [];
-//     const items = window.inventoryItems;
-//     const iconSize = 64;
-//     const padding = 24;
-//     const itemsPerRow = 5;
-//     const startX = 375;
-//     const startY = 500;
-//     for (let i = 0; i < items.length; i++) {
-//       const item = items[i];
-//       const row = Math.floor(i / itemsPerRow);
-//       const col = i % itemsPerRow;
-//       const x = startX + col * (iconSize + padding);
-//       const y = startY + row * (iconSize);
-
-//       // Draw item icon
-//       const sprite = this.add.image(x, y, item.key)
-//         .setDisplaySize(iconSize, iconSize)
-//         .setDepth(10001)
-//         .setInteractive({ useHandCursor: true });
-
-//       // Highlight if selected
-//       sprite.tintFill = true;
-//       if (this.selectedInventoryIndex === i) {
-//         sprite.setTint(0x0000ff);
-//       } else {
-//         sprite.clearTint();
-//       }
-//       // Single click: select/highlight or combine
-//       sprite.on('pointerdown', () => {
-//         if (this.selectedInventoryIndex !== null && this.selectedInventoryIndex !== i) {
-//           // Try to combine selected item with this one
-//           const selectedItem = items[this.selectedInventoryIndex];
-//           let combineAction = selectedItem.actions?.combine?.[item.key];
-//           if (!combineAction) {
-//             combineAction = item.actions?.combine?.[selectedItem.key];
-//           }
-//           if (combineAction) {
-//             // Remove both items, add result
-//             window.inventoryItems = items.filter((_, idx) => idx !== this.selectedInventoryIndex && idx !== i);
-//             window.inventoryItems.push({
-//               key: combineAction.result,
-//               message: combineAction.message,
-//               actions: {} // Could be extended for more combos
-//             });
-//             this.selectedInventoryIndex = null;
-//             this.message.setText(combineAction.message);
-//             this.drawInventory();
-//           } else {
-//             // Invalid combination
-//             this.message.setText("Those don't go together!");
-//             this.selectedInventoryIndex = null;
-//             this.drawInventory();
-//           }
-//         } else {
-//           // Just select/highlight
-//           this.selectedInventoryIndex = i;
-//           this.drawInventory();
-//         }
-//       });
-//       // Double click: show message
-//       sprite.on('pointerup', (pointer) => {
-//         if (pointer.getDuration() < 300 && pointer.downElement === pointer.upElement) {
-//           if (pointer.event.detail === 2) {
-//             this.message.setText(item.message);
-//             // this.message.setVisible(true);
-//             // this.time.delayedCall(1500, () => {
-//             //   this.inventoryMessageText.setVisible(false);
-//             // });
-//           }
-//         }
-//       });
-//       this.inventoryIconSprites.push(sprite);
-//     }
-//   }
-
 }
 
 export default BedroomScene;

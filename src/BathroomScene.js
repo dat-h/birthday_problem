@@ -12,7 +12,58 @@ class BathroomScene extends Phaser.Scene {
 
   }
 
+  createDebugGraphics() {
+    // Debug graphics for player's physics body
+    this.playerDebugGraphics = this.add.graphics();
+    this.playerDebugGraphics.setDepth(9999); // Ensure it's above everything
+    this.playerDebugGraphics.setVisible(this.DEBUG_GRAPHICS);
+
+    // Debug text for player-target distance
+    this.distanceDebugText = this.add.text(10, 10, 'Distance: 0', {
+      font: '16px Arial',
+      fill: '#ff0',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      padding: { x: 6, y: 2 }
+    }).setOrigin(0, 0).setDepth(9999);
+    this.distanceDebugText.setVisible( this.DEBUG_GRAPHICS);
+
+    // Graphics for target indicator
+    this.targetGraphics = this.add.graphics();
+    this.targetGraphics.setDepth(9998); // Just below debug text
+    this.targetGraphics.setVisible(this.DEBUG_GRAPHICS);
+
+    // Optional: debug draw the floor area
+    this.floorGraphics = this.add.graphics();
+    this.floorGraphics.setVisible(this.DEBUG_GRAPHICS);
+    this.floorGraphics.lineStyle(2, 0x00ff00, 1);
+  }
+
+  createSceneObjects() {
+
+    // Bed 
+    this.bed = new ClickableObject(
+      this, 148, 320, 296, 133, 250, 40, 'bed-sprite',
+      () => this.inventoryOverlay.setMessage("No. I just woke up"),
+      true // collides
+    );
+    this.bed.setBodyOffset(30, 40)
+
+    // Add clickable objects
+    this.clickableObjects = [];
+    this.clickableObjects.push(this.bed);
+
+    // Enable collision between player and clickable objects that have collides=true
+    for (const obj of this.clickableObjects) {
+      if (obj.collides) {
+        this.physics.add.collider(this.player, obj.sprite);
+      }
+    }
+  }
+
+
+
   create() {
+    this.createDebugGraphics();
 
     // Carry over inventory
     if (!window.inventoryItems) window.inventoryItems = [];
@@ -77,6 +128,9 @@ class BathroomScene extends Phaser.Scene {
       );
       if (distance < 50) {
         this.player.body.setVelocity(0, 0);
+        this.player.anims.stop();
+        this.player.setFrame(0); // Idle frame
+
         // Show arrival logic for clickable object
         if (this.clickedObject && typeof this.clickedObject.onArrive === 'function') {
           this.clickedObject.onArrive();

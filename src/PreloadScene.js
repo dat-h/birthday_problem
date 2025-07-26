@@ -41,6 +41,7 @@ class PreloadScene extends Phaser.Scene {
     this.load.image('dirty-sock', 'assets/img/dirty-sock.png');
     this.load.image('batteries', 'assets/img/d_battery.png');
     this.load.image('punch-card', 'assets/img/punch-card.png');
+    this.load.image('key', 'assets/img/key.png');
 
     // Character
     this.load.image('bernard-face', 'assets/img/bernard-face.png');
