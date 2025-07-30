@@ -1,8 +1,8 @@
-
 import Phaser from 'phaser';
 import ClickableObject from './ClickableObject.js';
 import { GetClosestPoint } from './ClickableObject.js';
 import { inventoryItemsDict } from './InventoryOverlay.js';
+import GameState from './GameState.js';
 
 import InventoryOverlay from './InventoryOverlay.js';
 import DebuggingObject from './DebuggingObject.js';
@@ -11,7 +11,7 @@ import DebuggingObject from './DebuggingObject.js';
 class BedroomScene extends Phaser.Scene {
   constructor() {
     super('BedroomScene');
-    this.DEBUG_GRAPHICS = false;
+    this.DEBUG_GRAPHICS = GameState.DEBUG_GRAPHICS;
   }
 
   preload() {
@@ -35,10 +35,18 @@ class BedroomScene extends Phaser.Scene {
   }
 
   createInventoryItems() {
-
-    window.inventoryItems.push( inventoryItemsDict['batteries']);
     window.inventoryItems.push( inventoryItemsDict['punch-card']);
-    window.inventoryItems.push( inventoryItemsDict['key']);
+    window.inventoryItems.push( inventoryItemsDict['pencil']);
+  }
+
+  saySomething( text ) {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text );
+      utterance.lang = 'en-GB'
+      utterance.rate = 1.5; // faster
+      utterance.pitch = 2;  // higher pitch
+      window.speechSynthesis.speak(utterance);
+    }
   }
 
   createSceneObjects() {
@@ -49,15 +57,20 @@ class BedroomScene extends Phaser.Scene {
       return this.inventoryOverlay.getItems()[idx];
     };
 
+    const genericCannotCombineMessage = () => {
+      this.inventoryOverlay.setMessage("That doesn't work here.");
+      this.inventoryOverlay.selectedIndex = null;
+      this.inventoryOverlay.draw();
+    };
+
+
     // Bed 
     this.bed = new ClickableObject(
       this, 148, 320, 296, 133, 250, 40, 'bed-sprite',
       () => {
         const selectedItem = getSelectedInventoryItem();
         if (selectedItem) {
-          this.inventoryOverlay.setMessage("That doesn't work here.");
-          this.inventoryOverlay.selectedIndex = null;
-          this.inventoryOverlay.draw();
+          genericCannotCombineMessage();
         } else {
           this.inventoryOverlay.setMessage("No. I just woke up");
         }
@@ -72,16 +85,16 @@ class BedroomScene extends Phaser.Scene {
       () => {
         const selectedItem = getSelectedInventoryItem();
         if (selectedItem) {
-          this.inventoryOverlay.setMessage("That doesn't work here.");
-          this.inventoryOverlay.selectedIndex = null;
-          this.inventoryOverlay.draw();
+          genericCannotCombineMessage();
         } else {
-          if (this.foundsock ) {
+          if (GameState.foundSock) {
             this.inventoryOverlay.setMessage("Nothing here");
+            this.saySomething( "Nothing left...");
           } else {
             this.inventoryOverlay.setMessage("Ooh... I found something!");
+            this.saySomething( "Ooo.. I found something!");
             this.inventoryOverlay.addItem( inventoryItemsDict['dirty-sock']);
-            this.foundsock = true;
+            GameState.foundSock = true;
           }
         }
       },
@@ -92,11 +105,9 @@ class BedroomScene extends Phaser.Scene {
     this.clock = new ClickableObject(
       this, 370, 60, 40, 40, 5, 5, 'invisible',
       () => {
-        const selectedItem = this.inventoryOverlay.selectedItem;
+        const selectedItem = getSelectedInventoryItem();
         if (selectedItem) {
-          this.inventoryOverlay.setMessage("That doesn't work here.");
-          this.inventoryOverlay.selectedIndex = null;
-          this.inventoryOverlay.draw();
+          genericCannotCombineMessage();
         } else {
           this.inventoryOverlay.setMessage("uhh.. 4:55?.. I think the clock is broken.");
         }
@@ -111,16 +122,44 @@ class BedroomScene extends Phaser.Scene {
       this, 130, 220, 40, 80, 40, 80, 'invisible',
       () => this.inventoryOverlay.setMessage("I'm afraid of the dark"),
       true // collides
-    );    
+    );
+
+    // Nightstand
+    this.nightstand = new ClickableObject(
+      this, 140, 280, 60, 20, 60, 20, 'invisible',
+      () => {
+        if (GameState.batteryTaken) {
+          this.inventoryOverlay.setMessage("Just dust...");
+        } else {
+          this.inventoryOverlay.setMessage("Oh goodies!");
+          this.inventoryOverlay.addItem( inventoryItemsDict['batteries']);
+          GameState.batteryTaken = true;
+        }
+      },
+      false // collides
+    );
+    this.nightstand.sprite.setDepth( 9999 );
 
     // Bathroom Door 
     this.bathroomdoor = new ClickableObject(
       this, 365, 220, 80, 180, 5, 5, 'invisible',
       () => {
-        this.scene.launch('BathroomScene');
+        this.scene.start('BathroomScene');
       },
       false // collides
     );
+
+
+    // Closet Door 
+    this.closetdoor = new ClickableObject(
+      this, 515, 200, 65, 160, 5, 5, 'invisible',
+      () => {
+        this.inventoryOverlay.setMessage("Scary");
+      },
+      false // collides
+    );
+
+
 
     // Mirror
     this.mirror = new ClickableObject(
@@ -131,55 +170,99 @@ class BedroomScene extends Phaser.Scene {
     this.mirror.setBodyOffset(0, 40)
 
 
-    // Box
-    this.boxLocked = true;
-    this.box = new ClickableObject(
-      this, 620, 270, 80, 60, 80, 60, 'invisible',
-      () => {
-        const selectedItem = getSelectedInventoryItem();
-        if (this.boxLocked) {
-          if (selectedItem && selectedItem.key === 'key') {
-            // Unlock the box
-            this.boxLocked = false;
-            this.inventoryOverlay.setMessage("You unlocked the box! There was a note inside.");
-            this.inventoryOverlay.removeItemByKey('key');
-            // Optionally add a new item to inventory, e.g. note
-            this.inventoryOverlay.addItem({
-              key: 'note',
-              message: "A mysterious note from the box.",
-              actions: {}
-            });
-            this.inventoryOverlay.selectedIndex = null;
-            this.inventoryOverlay.draw();
-          } else if (selectedItem) {
-            this.inventoryOverlay.setMessage("That doesn't work on the box.");
-            this.inventoryOverlay.selectedIndex = null;
-            this.inventoryOverlay.draw();
-          } else {
-            this.inventoryOverlay.setMessage("the box is locked");
-          }
-        } else {
-          this.inventoryOverlay.setMessage("The box is already unlocked.");
-        }
-      },
-      true // collides
-    );        
+    // Glass
+    if (!GameState.glassTaken) {
+      this.glass = new ClickableObject(
+        this, 162, 253, 45, 45, 5, 5, 'glass',
+        () => {
+            this.inventoryOverlay.setMessage("Nice glass");
+            this.inventoryOverlay.addItem( inventoryItemsDict['glass']);
+            GameState.glassTaken = true;
+            // Remove flashlight from scene
+            this.glass.sprite.destroy();
+            this.clickableObjects = this.clickableObjects.filter(obj => obj !== this.glass);        
+        },
+        false // collides
+      );
+      this.glass.setBodyOffset(30, 0);
+      this.glass.sprite.alpha = 0.5;
+    }
 
-    // Flashlight 
-    this.flashlight = new ClickableObject(
-      this, 350, 420, 60, 60, 60, 60, 'flashlight-off',
+    // Box
+    this.box = new ClickableObject(
+      this, 622, 265, 83, 73, 83, 73, GameState.boxUnlocked ? 'box-open-sprite' : 'box-locked-sprite',
       () => {
-      this.inventoryOverlay.setMessage("it's a flashlight");
-      this.inventoryOverlay.addItem( inventoryItemsDict['flashlight-off']);
-      // Remove flashlight from scene
-      this.flashlight.sprite.destroy();
-      this.clickableObjects = this.clickableObjects.filter(obj => obj !== this.flashlight);
-      // this.drawInventory();
+      const selectedItem = getSelectedInventoryItem();
+      if (!GameState.boxUnlocked) {
+        if (selectedItem && selectedItem.key === 'key') {
+        // Unlock the box
+        GameState.boxUnlocked = true;
+        this.inventoryOverlay.setMessage("You unlocked the box! There was a note inside.");
+        this.inventoryOverlay.removeItemByKey('key');
+        // Optionally add a new item to inventory, e.g. note
+        this.inventoryOverlay.addItem(inventoryItemsDict['notepad']);
+        this.inventoryOverlay.selectedIndex = null;
+        this.inventoryOverlay.draw();
+        // Change box texture to open
+        this.box.sprite.setTexture('box-open-sprite');
+        } else if (selectedItem) {
+          genericCannotCombineMessage();
+        } else {
+        this.inventoryOverlay.setMessage("the box is locked");
+        }
+      } else {
+        this.inventoryOverlay.setMessage("The box is already unlocked.");
+        // Ensure box texture is open if already unlocked
+        this.box.sprite.setTexture('box-open-sprite');
+      }
       },
       false // collides
-    );        
-    this.flashlight.setBodyOffset(0, 0);
-    this.flashlight.sprite.setDepth( this.flashlight.sprite.y - 50 );
+    );
+    this.box.sprite.setDepth( 6000 );
+
+
+
+    // Flashlight
+    if (!GameState.flashlightTaken) {
+      this.flashlight = new ClickableObject(
+        this, 350, 420, 60, 60, 60, 60, 'flashlight-off',
+        () => {
+            this.inventoryOverlay.setMessage("it's a flashlight");
+            this.inventoryOverlay.addItem( inventoryItemsDict['flashlight-off']);
+            GameState.flashlightTaken = true;
+            // Remove flashlight from scene
+            this.flashlight.sprite.destroy();
+            this.clickableObjects = this.clickableObjects.filter(obj => obj !== this.flashlight);        
+        },
+        false // collides
+      );
+      this.flashlight.setBodyOffset(0, 0);
+      this.flashlight.sprite.setDepth( this.flashlight.sprite.y - 50 );
+    }
+
+
+    // Drawers
+    this.drawers = new ClickableObject(
+      this, 653, 365, 238, 163, 200, 100, 'drawer-closed-sprite',
+      () => {
+          this.inventoryOverlay.setMessage("Closed Drawers");
+      },
+      true // collides
+    );
+    this.drawers.setBodyOffset(30, 25)    
+
+
+    // Drawers
+    this.frontdoor = new ClickableObject(
+      this, 700, 200, 50, 200, 50, 200, 'invisible',
+      () => {
+          this.inventoryOverlay.setMessage("Closed door");
+      },
+      true // collides
+    );
+    // this.drawers.setBodyOffset(30, 25)    
+
+
     // Add clickable objects
     this.clickableObjects = [];
 
@@ -191,7 +274,14 @@ class BedroomScene extends Phaser.Scene {
     this.clickableObjects.push(this.lamp);
     this.clickableObjects.push(this.bathroomdoor);
     this.clickableObjects.push(this.mirror);
+    this.clickableObjects.push(this.glass);
     this.clickableObjects.push(this.box);
+    this.clickableObjects.push(this.drawers);
+    this.clickableObjects.push(this.frontdoor);
+    this.clickableObjects.push(this.nightstand);
+    this.clickableObjects.push(this.closetdoor);
+
+
 
     // Enable collision between player and clickable objects that have collides=true
     for (const obj of this.clickableObjects) {
@@ -203,6 +293,10 @@ class BedroomScene extends Phaser.Scene {
 
   create() {
     this.debugGraphics = new DebuggingObject(this);
+    // if (!window.bgMusic) {
+    //   window.bgMusic = this.sound.add('bg-music', { loop: true, volume: 0.5 });
+    //   window.bgMusic.play();
+    // }    
 
     // Add background image to fit the scene (800x600), positioned at the top
     const bg = this.add.image(400, -60, 'bedroom-bg-light').setOrigin(0.5, 0);
@@ -215,8 +309,9 @@ class BedroomScene extends Phaser.Scene {
     if (!window.inventoryItems) window.inventoryItems = [];
     // Inventory overlay utility
     this.inventoryOverlay = new InventoryOverlay(this);
-    // this.createInventory();
-    this.createInventoryItems();
+    if (!GameState.wokeUp ) {
+      this.createInventoryItems();
+    }
     this.inventoryOverlay.draw();
 
 
@@ -232,7 +327,7 @@ class BedroomScene extends Phaser.Scene {
     this.debugGraphics.updateFloorGraphics( this.floorPolygon.points);
 
     this.createSceneObjects();
-     
+    GameState.wokeUp = true;
     // Move player to pointer on click (except clickable objects)
     this.input.on('pointerdown', (pointer) => {
       // Prevent movement if clicking inside inventory area

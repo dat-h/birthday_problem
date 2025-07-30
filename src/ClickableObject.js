@@ -84,7 +84,7 @@ class ClickableObject {
       scene.target.y = closest.y;
       scene.clickedObject = this;
 
-      scene.inventoryOverlay.setMessage('...');
+      scene.inventoryOverlay.setMessage('hmm...');
       scene.physics.moveToObject(scene.player, scene.target, 200);
       if (scene.player.anims && scene.player.anims.play) {
         scene.player.anims.play('walk', true);

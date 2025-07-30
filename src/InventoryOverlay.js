@@ -27,6 +27,12 @@ class InventoryOverlay {
       .setOrigin(0, 0.5)
       .setDepth(10001);
 
+    // Add Bernard's face sprite at (0, 500)
+    this.bernardFace = this.scene.add.image(5, 20, 'menu-btn')
+      .setOrigin(0, 0.5)
+      .setDepth(10001);
+
+
 
     this.messageText = this.scene.add.text(
       this.x + 100,
@@ -103,21 +109,27 @@ class InventoryOverlay {
         if (this.selectedIndex !== null && this.selectedIndex !== i) {
           this.selectedItem = items[this.selectedIndex];
           const selectedItem = items[this.selectedIndex];
+
           let combineAction = selectedItem.actions?.combine?.[item.key];
           if (!combineAction) {
             combineAction = item.actions?.combine?.[selectedItem.key];
           }
           if (combineAction) {
-            // Remove both items, add result
-            this.inventoryItems = items.filter((_, idx) => idx !== this.selectedIndex && idx !== i);
-            this.inventoryItems.push({
-              key: combineAction.result,
-              message: combineAction.message,
-              actions: {}
-            });
-            window.inventoryItems = this.inventoryItems;
-            this.selectedIndex = null;
+            if ( combineAction.result ) {
+              // Remove both items, add result
+              this.inventoryItems = items.filter((_, idx) => idx !== this.selectedIndex && idx !== i);
+              // this.inventoryItems.push({
+              //   key: combineAction.result,
+              //   message: combineAction.message,
+              //   actions: {}
+              // });
+              this.inventoryItems.push(combineAction.result);
+                            
+              window.inventoryItems = this.inventoryItems;
+            }
+            // const msg = combineAction.combine_message ? combineAction.combine_message : combineAction.message;
             this.setMessage(combineAction.message);
+            this.selectedIndex = null;
             this.draw();
           } else {
             this.setMessage("Those don't go together!");
@@ -126,14 +138,8 @@ class InventoryOverlay {
           }
         } else {
           this.selectedIndex = i;
+          this.setMessage(item.message);
           this.draw();
-        }
-      });
-      sprite.on('pointerup', (pointer) => {
-        if (pointer.getDuration() < 300 && pointer.downElement === pointer.upElement) {
-          if (pointer.event.detail === 2) {
-            this.setMessage(item.message);
-          }
         }
       });
       this.iconSprites.push(sprite);
@@ -148,39 +154,106 @@ class InventoryOverlay {
 }
 
 export default InventoryOverlay;
+/**
+ * Note: You cannot directly reference `inventoryItemsDict` within its own definition,
+ * because the object is not fully constructed until after the declaration.
+ * 
+ * However, you can define the structure first, then add recursive references after.
+ * Example:
+ */
 
-export const inventoryItemsDict = {
-      'flashlight-off': {
-        key: 'flashlight-off',
-        message: "It's a flashlight.",
-        actions: {
-          combine: {
-            'batteries': { result: 'flashlight-on', message: 'You put the batteries in the flashlight.' }
-          }
+export const inventoryItemsDict = {};
+
+Object.assign(inventoryItemsDict, {
+  'flashlight-off': {
+    key: 'flashlight-off',
+    message: "It's a flashlight.",
+    actions: {
+      combine: {
+        'batteries': { message: 'The flashlight needs a pair of batteries to work.' }, 
+        'batterypair': {
+          result: inventoryItemsDict['flashlight-on'], // This will be undefined at this point!
+          message: 'You put the batteries in the flashlight.'
         }
-      },
-      'batteries': {
-        key: 'batteries',
-        message: "A pair of batteries.",
-        actions: {
-          combine: {
-            'flashlight-off': { result: 'flashlight-on', message: 'You put the batteries in the flashlight.' }
-          }
-        }
-      },
-      'dirty-sock': {
-        key: 'dirty-sock',
-        message: "A dirty sock. Gross!",
-        actions: {}
-      },
-      'punch-card': {
-        key: 'punch-card',
-        message: "A punch card",
-        actions: {}
-      },
-      'key': {
-        key: 'key',
-        message: "Where does this key go?",
-        actions: {}
       }
-    };
+    }
+  },
+  'flashlight-on': {
+    key: 'flashlight-on',
+    message: "The flashlight lights the way.",
+    actions: {
+    }
+  },  
+  'batteries': {
+    key: 'batteries',
+    message: "It's a D battery.",
+    actions: {
+      combine: {
+        'flashlight-off': { message: 'The flashlight needs two batteries.' },
+        'batteries': {
+          result: inventoryItemsDict['batterypair'], // This will be undefined at this point!
+          message: 'A pair of D batteries.'
+        },
+      }
+    }
+  },
+  'batterypair': {
+    key: 'batterypair',
+    message: "A pair of D batteries.",
+    actions: {
+      combine: {
+        'flashlight-off': {
+          result: inventoryItemsDict['flashlight-on'], // This will be undefined at this point!
+          message: 'You put the batteries in the flashlight.'
+        }
+      }
+    }
+  },
+  'dirty-sock': {
+    key: 'dirty-sock',
+    message: "A dirty sock. Gross!",
+    actions: {}
+  },
+  'punch-card': {
+    key: 'punch-card',
+    message: "A punch card",
+    actions: {}
+  },
+  'key': {
+    key: 'key',
+    message: "Where does this key go?",
+    actions: {}
+  },
+  'notepad': {
+    key: 'notepad',
+    message: "Nothing on it",
+    actions: {}
+  },
+  'pencil': {
+    key: 'pencil',
+    message: "Nothing on it",
+    actions: {}
+  },
+  'clock-hands': {
+    key: 'clock-hands',
+    message: "Nothing on it",
+    actions: {}
+  },
+  'pliers': {
+    key: 'pliers',
+    message: "Nothing on it",
+    actions: {}
+  },
+  'glass': {
+    key: 'glass',
+    message: "Nothing on it",
+    actions: {}
+  }
+});
+
+// After the initial definition, you can now safely assign recursive references:
+inventoryItemsDict['batteries'].actions.combine['batteries'].result = inventoryItemsDict['batterypair'];
+inventoryItemsDict['batterypair'].actions.combine['flashlight-off'].result = inventoryItemsDict['flashlight-on'];
+inventoryItemsDict['flashlight-off'].actions.combine['batterypair'].result = inventoryItemsDict['flashlight-on'];
+
+// You must define 'flashlight-on' somewhere in the dictionary as well, or these will be undefined.
