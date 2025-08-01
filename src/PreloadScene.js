@@ -23,12 +23,14 @@ class PreloadScene extends Phaser.Scene {
       bar.width = barWidth * value;
     });
 
+    // Load Truetype font
+    this.load.font('Berkelium', 'assets/fonts/BerkeliumIIHGR.ttf');
+
     // Invisible
     this.load.image('invisible', 'assets/img/1x1.png');
     this.load.image('vignette', 'assets/img/vignette.png');
     this.load.image('menu-btn', 'assets/img/menu-btn.png');
-
-
+    this.load.image('title', 'assets/img/title.png');
 
     // Backgrounds
     this.load.image('bedroom-bg-light', 'assets/img/backgrounds/background-light-closed.png');
@@ -87,8 +89,10 @@ class PreloadScene extends Phaser.Scene {
       frameRate: 8,
       repeat: -1
     });    
+    this.scale.setParentSize(window.innerWidth, window.innerHeight);
 
-    this.scene.start('BedroomScene'); // Start the main game scene after preloading
+
+    this.scene.start('TitleScene'); // Start the main game scene after preloading
   }
 }
 

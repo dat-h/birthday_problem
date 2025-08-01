@@ -42,9 +42,10 @@ class BedroomScene extends Phaser.Scene {
   saySomething( text ) {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text );
-      utterance.lang = 'en-GB'
-      utterance.rate = 1.5; // faster
-      utterance.pitch = 2;  // higher pitch
+      utterance.voice = GameState.selectedVoice || null;
+      // utterance.lang = 'en-GB'
+      // utterance.rate = 1.5; // faster
+      // utterance.pitch = 2;  // higher pitch
       window.speechSynthesis.speak(utterance);
     }
   }
@@ -110,6 +111,7 @@ class BedroomScene extends Phaser.Scene {
           genericCannotCombineMessage();
         } else {
           this.inventoryOverlay.setMessage("uhh.. 4:55?.. I think the clock is broken.");
+          this.saySomething("The clock is broken");
         }
       },
       false // collides
@@ -292,6 +294,7 @@ class BedroomScene extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.fadeIn(500, 0, 0, 0);
     this.debugGraphics = new DebuggingObject(this);
     // if (!window.bgMusic) {
     //   window.bgMusic = this.sound.add('bg-music', { loop: true, volume: 0.5 });
@@ -334,6 +337,9 @@ class BedroomScene extends Phaser.Scene {
       if (pointer.y >= 470 && pointer.y <= 600) {
         return;
       }
+      if (pointer.x <= 65 && pointer.y <= 65) {
+        return;
+      }      
       // Ignore if pointer is over any clickable object
       for (const obj of this.clickableObjects) {
         const s = obj.sprite;

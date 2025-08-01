@@ -5,6 +5,7 @@ import BedroomScene from './BedroomScene.js';
 import BathroomScene, { ToiletScene } from './BathroomScene.js';
 import PreloadScene from './PreloadScene.js';
 import WakeUpScene from './AnimatedScene.js';
+import MenuScene from './MenuScene.js';
 
 
 
@@ -24,7 +25,11 @@ const config = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
-  scene: [PreloadScene, WakeUpScene, BedroomScene, BathroomScene, ToiletScene]
+    dom: {
+        createContainer: true
+    },
+    parent: 'gamecanvas', // Never set parent here - it messes up the viewport in iOS
+  scene: [PreloadScene, TitleScene, MenuScene, WakeUpScene, BedroomScene, BathroomScene, ToiletScene]
 };
 
 const game = new Phaser.Game(config);

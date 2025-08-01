@@ -6,13 +6,15 @@
     "dev": "vite",
     "build": "vite build",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "deploy2": "rsync -avz ./dist/* ubuntu@neo:/home/ubuntu/dockers/lighttpd/htdocs/birthday_problem"
   },
   "dependencies": {
     "phaser": "^3.70.0"
   },
   "devDependencies": {
     "gh-pages": "^6.3.0",
+    "terser": "^5.43.1",
     "vite": "^7.0.4"
   }
 }

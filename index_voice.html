@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" /> 
+    <title>Birthday Problem - Point and Click Adventure</title>
+    <!-- <link rel="manifest" href="manifest.json"> -->
+    <meta name="theme-color" content="#222222">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="assets/img/icon-192.png">
+  </head>
+  <body background="assets/img/bg.png">
+    <div id="game"></div>
+    <script type="module" src="src/main.js"></script>
+
+    <!-- <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js');
+        });
+      }
+    </script> -->
+    <form id="floating-form">
+      <p>Recommended voices :</p>
+      <select id="voice-select"></select>
+      <input id="text-to-read" class="txt" style="display:none;"></input>
+
+      <div class="controls">
+        <button id="read-button" type="button">Test</button>
+        <button id="play-button" type="submit">Play</button>
+      </div>
+    </form>
+    <script type="module" src="voices.js" ></script>
+   
+    <style>
+      #floating-form {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(34,34,34,0.95);
+        color: #fff;
+        padding: 32px 24px;
+        border-radius: 16px;
+        box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+        z-index: 1000;
+        min-width: 320px;
+        pointer-events: auto;
+      }
+      #game.blocked {
+        pointer-events: none;
+        filter: blur(4px);
+        user-select: none;
+      }
+    </style>
+    <script>
+      // Block game input while form is visible
+      document.getElementById('game').classList.add('blocked');
+      document.getElementById('floating-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        this.style.display = 'none';
+        document.getElementById('game').classList.remove('blocked');
+      });
+    </script>    
+  </body>
+</html>

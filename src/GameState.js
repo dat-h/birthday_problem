@@ -3,7 +3,10 @@
 
 const GameState = {
   // Game settings
-  DEBUG_GRAPHICS: true,
+  DEBUG_GRAPHICS: false,
+  volume: 1.0,
+  isMuted: false,
+  isVoicesOn: false,
   // Game milestones
   wokeUp: false,  
   foundSock: false,

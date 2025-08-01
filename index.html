@@ -2,23 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=800, initial-scale=1.0" />
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimal-ui" /> 
     <title>Birthday Problem - Point and Click Adventure</title>
     <!-- <link rel="manifest" href="manifest.json"> -->
     <meta name="theme-color" content="#222222">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="assets/img/icon-192.png">
+
+    <style media='screen' type='text/css'>
+          @font-face {
+            font-family: Berkelium;
+            src: url('public/assets/fonts/BerkeliumIIHGR.ttf');
+            font-weight:400;
+            font-weight:normal;
+          }
+    </style>
+
   </head>
-  <body>
+  <body id='gamecanvas' background="assets/img/bg.png">
     <div id="game"></div>
-    <script type="module" src="src/main.js"></script>
-    <!-- <script>
+    <script type="module" src="src/main.js"></script><!-- <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('sw.js');
         });
       }
-    </script> -->
-  </body>
+    </script> --></body>  
 </html>

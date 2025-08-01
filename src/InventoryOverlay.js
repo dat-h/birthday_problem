@@ -27,10 +27,14 @@ class InventoryOverlay {
       .setOrigin(0, 0.5)
       .setDepth(10001);
 
-    // Add Bernard's face sprite at (0, 500)
-    this.bernardFace = this.scene.add.image(5, 20, 'menu-btn')
+    // Add Menu Button at (5, 20)
+    this.menu_btn = this.scene.add.image(5, 20, 'menu-btn')
       .setOrigin(0, 0.5)
-      .setDepth(10001);
+      .setDepth(10001).setInteractive();
+    this.menu_btn.on('pointerdown', () => {
+      this.scene.scene.pause();
+      this.scene.scene.launch('MenuScene', { pausedScene: this.scene.scene.key });
+    });
 
 
 
