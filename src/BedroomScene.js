@@ -259,6 +259,7 @@ class BedroomScene extends Phaser.Scene {
       this, 700, 200, 50, 200, 50, 200, 'invisible',
       () => {
           this.inventoryOverlay.setMessage("Closed door");
+          this.scene.start('DoorScene');
       },
       true // collides
     );

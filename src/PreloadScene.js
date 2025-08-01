@@ -38,8 +38,7 @@ class PreloadScene extends Phaser.Scene {
     this.load.image('toilet-bg', 'assets/img/backgrounds/background-toilet.png');
     this.load.image('picnic-bg', 'assets/img/backgrounds/picnic_bg.png');
     this.load.image('ceiling-bg', 'assets/img/backgrounds/ceiling.png');
-
-
+    this.load.image('door-bg', 'assets/img/backgrounds/door_bg.png');
 
     // Scene items
     this.load.image('bed-sprite', 'assets/img/scene/bed-sprite.png');
@@ -92,7 +91,7 @@ class PreloadScene extends Phaser.Scene {
     this.scale.setParentSize(window.innerWidth, window.innerHeight);
 
 
-    this.scene.start('TitleScene'); // Start the main game scene after preloading
+    this.scene.start('DoorScene'); // Start the main game scene after preloading
   }
 }
 

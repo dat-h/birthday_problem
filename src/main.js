@@ -6,8 +6,7 @@ import BathroomScene, { ToiletScene } from './BathroomScene.js';
 import PreloadScene from './PreloadScene.js';
 import WakeUpScene from './AnimatedScene.js';
 import MenuScene from './MenuScene.js';
-
-
+import DoorScene from './DoorScene.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -29,7 +28,7 @@ const config = {
         createContainer: true
     },
     parent: 'gamecanvas', // Never set parent here - it messes up the viewport in iOS
-  scene: [PreloadScene, TitleScene, MenuScene, WakeUpScene, BedroomScene, BathroomScene, ToiletScene]
+  scene: [PreloadScene, TitleScene, MenuScene, WakeUpScene, BedroomScene, BathroomScene, ToiletScene, DoorScene]
 };
 
 const game = new Phaser.Game(config);

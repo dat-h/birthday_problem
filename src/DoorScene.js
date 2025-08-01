@@ -1,4 +1,13 @@
 import Phaser from 'phaser';
+import ClickableObject from './ClickableObject.js';
+import { GetClosestPoint } from './ClickableObject.js';
+import { inventoryItemsDict } from './InventoryOverlay.js';
+import GameState from './GameState.js';
+
+import InventoryOverlay from './InventoryOverlay.js';
+import DialogSystem from './DialogSystem.js';
+import { doorGuardDialog } from './DialogData.js';
+
 
 class DoorScene extends Phaser.Scene {
   constructor() {
@@ -6,41 +15,63 @@ class DoorScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load any assets needed for the animation (e.g., eyelid images, sound effects)
-    // this.load.image('eyelid', 'assets/eyelid.png');
-    // this.load.audio('yawn', 'assets/yawn.mp3');
   }
 
   create() {
     const { width, height } = this.cameras.main;
 
-    // Optional: Play a yawn sound
-    // this.sound.play('yawn');
-
     // Add background (placeholder color)
     this.cameras.main.setBackgroundColor('#000000ff'); // light blue for bathroom
 
     // Add and rescale background image to fit the scene (800x600), positioned at the top
-    const bg = this.add.image(width/2, height/2, 'picnic-bg').setOrigin(0.5, 0.5);
+    const bg = this.add.image(400, 60, 'door-bg').setOrigin(0.5, 0);
     bg.setDepth(-1000); // Ensure background is behind all objects
-    bg.displayWidth = width * 0.75;
-    bg.displayHeight = height * 0.75;
+
+    // Initialize dialog system
+    this.dialogSystem = new DialogSystem(this);
+    this.dialogSystem.startDialog(doorGuardDialog);
+    this.dialogSystem.isActive = true;
 
 
-    // Integrate web speech api to speak "where am I?"
+    // Add visual representation of the guard (you can replace with actual sprite)
+    this.guardSprite = this.add.rectangle(400, 300, 60, 100, 0x8B4513)
+      .setDepth(100);
+    this.guardText = this.add.text(400, 250, 'Door Guard', {
+      font: '14px Arial',
+      fill: '#ffffff',
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      padding: { x: 4, y: 2 }
+    }).setOrigin(0.5).setDepth(101);
 
+    // Inventory overlay utility
+    this.inventoryOverlay = new InventoryOverlay(this);
+    
+    this.input.on('pointerdown', (pointer) => {
+      // Don't allow scene changes if dialog is active
+      if (this.dialogSystem.isActive) {
+        return;
+      }
+      
+      if (pointer.y >= 470 && pointer.y <= 600) {
+        return;
+      }
 
-    // if ('speechSynthesis' in window) {
-    //   const utterance = new SpeechSynthesisUtterance('where am I?');
-    //   window.speechSynthesis.speak(utterance);
-    // }
+      // Check if clicking on the door guard
+      if (pointer.x >= 360 && pointer.x <= 440 && pointer.y >= 240 && pointer.y <= 360) {
+        return; // Let the ClickableObject handle it
+      }
 
-    // Optional: Add blurry vision effect or overlay here
-    // Optional: Add breathing or blinking animation
+      this.inventoryOverlay.setMessage('...');
+      this.inventoryOverlay.selectedIndex = null;
+      this.inventoryOverlay.draw();
+      
+      this.clickedObject = null;
+      this.scene.start('BedroomScene');
+    });
   }
 
   update() {
-    // Handle any per-frame logic if needed
+
   }
 }
 export default DoorScene;
