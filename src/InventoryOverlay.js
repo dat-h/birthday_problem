@@ -20,6 +20,8 @@ class InventoryOverlay {
     this.selectedIndex = null;
     this.selectedItem = null;
     this.iconSprites = [];
+    this.scrollOffset = 0;
+    this.maxVisibleItems = this.itemsPerRow * 2; // Show 2 rows (10 items)
 
 
     // Add Bernard's face sprite at (0, 500)
@@ -34,6 +36,28 @@ class InventoryOverlay {
     this.menu_btn.on('pointerdown', () => {
       this.scene.scene.pause();
       this.scene.scene.launch('MenuScene', { pausedScene: this.scene.scene.key });
+    });
+
+    // Add Up/Down arrows for scrolling inventory
+    this.upArrow = this.scene.add.image(this.x + this.width - 20, this.y + 35, 'arrow-up')
+      .setOrigin(0.5, 0.5)
+      .setDepth(this.depth + 2)
+      .setInteractive();
+    this.downArrow = this.scene.add.image(this.x + this.width - 20, this.y + 64 + 35, 'arrow-down')
+      .setOrigin(0.5, 0.5)
+      .setDepth(this.depth + 2)
+      .setInteractive();
+    this.upArrow.on('pointerdown', () => {
+      if (this.scrollOffset > 0) {
+        this.scrollOffset -= this.itemsPerRow;
+        this.draw();
+      }
+    });
+    this.downArrow.on('pointerdown', () => {
+      if (this.scrollOffset + this.maxVisibleItems < this.inventoryItems.length) {
+        this.scrollOffset += this.itemsPerRow;
+        this.draw();
+      }
     });
 
 
@@ -93,10 +117,14 @@ class InventoryOverlay {
     for (const s of this.iconSprites) s.destroy();
     this.iconSprites = [];
     const items = this.inventoryItems;
-    for (let i = 0; i < items.length; i++) {
+    // Only show items in the current scroll window
+    const startIdx = this.scrollOffset;
+    const endIdx = Math.min(items.length, startIdx + this.maxVisibleItems);
+    for (let i = startIdx; i < endIdx; i++) {
       const item = items[i];
-      const row = Math.floor(i / this.itemsPerRow);
-      const col = i % this.itemsPerRow;
+      const localIdx = i - startIdx;
+      const row = Math.floor(localIdx / this.itemsPerRow);
+      const col = localIdx % this.itemsPerRow;
       const x = this.x + 375 + col * (this.iconSize + this.padding);
       const y = this.y + 30 + row * (this.iconSize);
       const sprite = this.scene.add.image(x, y, item.key)
@@ -122,16 +150,9 @@ class InventoryOverlay {
             if ( combineAction.result ) {
               // Remove both items, add result
               this.inventoryItems = items.filter((_, idx) => idx !== this.selectedIndex && idx !== i);
-              // this.inventoryItems.push({
-              //   key: combineAction.result,
-              //   message: combineAction.message,
-              //   actions: {}
-              // });
               this.inventoryItems.push(combineAction.result);
-                            
               window.inventoryItems = this.inventoryItems;
             }
-            // const msg = combineAction.combine_message ? combineAction.combine_message : combineAction.message;
             this.setMessage(combineAction.message);
             this.selectedIndex = null;
             this.draw();
@@ -148,6 +169,9 @@ class InventoryOverlay {
       });
       this.iconSprites.push(sprite);
     }
+    // Show/hide arrows based on scroll position and item count
+    this.upArrow.setVisible(this.scrollOffset > 0);
+    this.downArrow.setVisible(this.scrollOffset + this.maxVisibleItems < items.length);
   }
 
   destroy() {

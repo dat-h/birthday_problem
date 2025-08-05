@@ -11,6 +11,7 @@ const GameState = {
   wokeUp: false,  
   foundSock: false,
   boxUnlocked: false,
+  drawerOpened: false,
   flashlightTaken: false,
   glassTaken: false,
   batteryTaken: false,

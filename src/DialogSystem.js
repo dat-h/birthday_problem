@@ -33,9 +33,9 @@ class DialogSystem {
       this.y + 15,
       '',
       {
-        font: 'bold 20px Arial',
+        font: 'bold 20px Berkelium',
         fill: '#ffffff',
-        backgroundColor: 'rgba(0,0,0,0.8)',
+        backgroundColor: 'rgba(0,0,0,0)',
         padding: { x: 8, y: 4 }
       }
     ).setDepth(this.depth + 1).setVisible(false);
@@ -46,24 +46,24 @@ class DialogSystem {
       this.y + 60,
       '',
       {
-        font: '18px Arial',
-        fill: '#ffffff',
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        padding: { x: 12, y: 8 },
-        wordWrap: { width: this.width - 40, useAdvancedWrap: true }
+      font: '18px Berkelium',
+      fill: '#ffffff',
+      backgroundColor: 'rgba(0,0,0,0)',
+      padding: { x: 12, y: 8 },
+      wordWrap: { width: this.width - 40, useAdvancedWrap: true }
       }
     ).setDepth(this.depth + 1).setVisible(false);
-  }
+    }
 
   drawBackground() {
     this.background.clear();
     
     // Main dialog background
-    this.background.fillStyle(0x000033, 0.9);
+    this.background.fillStyle(0x000033, 0);
     this.background.fillRoundedRect(this.x, this.y, this.width, this.height, 10);
     
     // Border
-    this.background.lineStyle(3, 0xffffff, 1);
+    this.background.lineStyle(3, 0xffffff, 0);
     this.background.strokeRoundedRect(this.x, this.y, this.width, this.height, 10);
   }
 
@@ -76,7 +76,7 @@ class DialogSystem {
     
     this.drawBackground();
     this.background.setVisible(true);
-    this.npcNameText.setVisible(true);
+    this.npcNameText.setVisible(false);
     this.npcText.setVisible(true);
     
     // Set NPC name
@@ -119,7 +119,7 @@ class DialogSystem {
       // Button background
       const buttonBg = this.scene.add.graphics();
       buttonBg.setDepth(this.depth + 2);
-      buttonBg.fillStyle(0x444444, 0.8);
+      buttonBg.fillStyle(0x444444, 0.2);
       buttonBg.fillRoundedRect(this.x + 20, buttonY, this.width - 40, buttonHeight, 5);
       buttonBg.lineStyle(2, 0xcccccc, 1);
       buttonBg.strokeRoundedRect(this.x + 20, buttonY, this.width - 40, buttonHeight, 5);
@@ -130,7 +130,7 @@ class DialogSystem {
         buttonY + buttonHeight / 2,
         response.text,
         {
-          font: '16px Arial',
+          font: '18px Berkelium',
           fill: '#ffffff',
           wordWrap: { width: this.width - 80, useAdvancedWrap: true }
         }
@@ -155,7 +155,7 @@ class DialogSystem {
       
       hitArea.on('pointerout', () => {
         buttonBg.clear();
-        buttonBg.fillStyle(0x444444, 0.8);
+        buttonBg.fillStyle(0x444444, 0.2);
         buttonBg.fillRoundedRect(this.x + 20, buttonY, this.width - 40, buttonHeight, 5);
         buttonBg.lineStyle(2, 0xcccccc, 1);
         buttonBg.strokeRoundedRect(this.x + 20, buttonY, this.width - 40, buttonHeight, 5);
@@ -188,7 +188,7 @@ class DialogSystem {
       buttonY + buttonHeight / 2,
       'Continue',
       {
-        font: '16px Arial',
+        font: '16px Berkelium',
         fill: '#ffffff'
       }
     ).setDepth(this.depth + 3).setOrigin(0.5, 0.5);
@@ -199,7 +199,7 @@ class DialogSystem {
       buttonY + buttonHeight / 2,
       100,
       buttonHeight
-    ).setDepth(this.depth + 4).setVisible(false).setInteractive({ useHandCursor: true });
+    ).setDepth(this.depth + 4).setVisible(true).setInteractive({ useHandCursor: true });
     
     hitArea.on('pointerdown', () => {
       this.endDialog();

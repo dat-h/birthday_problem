@@ -29,22 +29,29 @@ class PreloadScene extends Phaser.Scene {
     // Invisible
     this.load.image('invisible', 'assets/img/1x1.png');
     this.load.image('vignette', 'assets/img/vignette.png');
+
+    // UI elements
     this.load.image('menu-btn', 'assets/img/menu-btn.png');
     this.load.image('title', 'assets/img/title.png');
+    this.load.image('arrow-up', 'assets/img/up_arrow.png');
+    this.load.image('arrow-down', 'assets/img/down_arrow.png');
+
 
     // Backgrounds
     this.load.image('bedroom-bg-light', 'assets/img/backgrounds/background-light-closed.png');
     this.load.image('bathroom-bg', 'assets/img/backgrounds/background-bathroom.png');
     this.load.image('toilet-bg', 'assets/img/backgrounds/background-toilet.png');
     this.load.image('picnic-bg', 'assets/img/backgrounds/picnic_bg.png');
-    this.load.image('ceiling-bg', 'assets/img/backgrounds/ceiling.png');
+    this.load.image('ceiling-bg', 'assets/img/backgrounds/ceiling_bg.png');
     this.load.image('door-bg', 'assets/img/backgrounds/door_bg.png');
 
     // Scene items
     this.load.image('bed-sprite', 'assets/img/scene/bed-sprite.png');
     this.load.image('box-locked-sprite', 'assets/img/scene/box-locked-sprite.png');
     this.load.image('box-open-sprite', 'assets/img/scene/box-open-sprite.png');
-    this.load.image('drawer-closed-sprite', 'assets/img/scene/drawer-closed-sprite.png');
+    this.load.image('drawer-closed-sprite', 'assets/img/scene/drawer-closed-sprite-2.png');
+    this.load.image('drawer-open-sprite', 'assets/img/scene/drawer-open-sprite-2.png');
+
     this.load.image('laundry-hamper', 'assets/img/scene/laundry-hamper.png');
 
     // Inventory items
@@ -68,6 +75,11 @@ class PreloadScene extends Phaser.Scene {
       frameWidth: 156,
       frameHeight: 218
     });
+    this.load.spritesheet('knock-sprite', 'assets/img/animations/knock2.png', {
+      frameWidth: 64,
+      frameHeight: 64
+    });
+
 
 
     // Music
@@ -87,11 +99,19 @@ class PreloadScene extends Phaser.Scene {
       frames: this.anims.generateFrameNumbers('bernard-walk', { start: 0, end: 5 }),
       frameRate: 8,
       repeat: -1
-    });    
+    });
+    
+    this.anims.create({
+      key: 'knock',
+      frames: this.anims.generateFrameNumbers('knock-sprite', { start: 0, end: 7 }),
+      frameRate: 32,
+      repeat: 0
+    });
+    
     this.scale.setParentSize(window.innerWidth, window.innerHeight);
 
 
-    this.scene.start('DoorScene'); // Start the main game scene after preloading
+    this.scene.start('BedroomScene'); // Start the main game scene after preloading
   }
 }
 

@@ -272,7 +272,7 @@ class TitleScene extends Phaser.Scene {
     optionsText.setVisible(false); // Hide options button until voices are loaded
 
     startText.on('pointerdown', () => {
-      this.scene.start('BedroomScene');
+      this.scene.start('WakeUpScene');
     });
     optionsText.on('pointerdown', () => {
       // Placeholder for options menu

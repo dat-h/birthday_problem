@@ -36,7 +36,7 @@ class BedroomScene extends Phaser.Scene {
 
   createInventoryItems() {
     window.inventoryItems.push( inventoryItemsDict['punch-card']);
-    window.inventoryItems.push( inventoryItemsDict['pencil']);
+    window.inventoryItems.push( inventoryItemsDict['pencil']);   
   }
 
   saySomething( text ) {
@@ -82,7 +82,7 @@ class BedroomScene extends Phaser.Scene {
 
     // Under Bed
     this.underbed = new ClickableObject(
-      this, 130, 380, 80, 20, 80, 20, 'invisible',
+      this, 120, 380, 200, 20, 200, 20, 'invisible',
       () => {
         const selectedItem = getSelectedInventoryItem();
         if (selectedItem) {
@@ -245,16 +245,44 @@ class BedroomScene extends Phaser.Scene {
 
     // Drawers
     this.drawers = new ClickableObject(
-      this, 653, 365, 238, 163, 200, 100, 'drawer-closed-sprite',
+      this, 653, 352, 238, 133, 200, 100, 'drawer-closed-sprite',
       () => {
           this.inventoryOverlay.setMessage("Closed Drawers");
+
+          if (!GameState.drawerOpened) {
+            // Open the drawer
+            GameState.drawerOpened = true;
+            this.inventoryOverlay.setMessage("You unlocked the box! There was a note inside.");
+            // Optionally add a new item to inventory, e.g. note
+            this.inventoryOverlay.addItem(inventoryItemsDict['notepad']);
+            this.inventoryOverlay.selectedIndex = null;
+            this.inventoryOverlay.draw();
+            // Change box texture to open
+            this.drawers.sprite.setTexture('drawer-open-sprite'); 
+          } else {
+            this.inventoryOverlay.setMessage("The box is already unlocked.");
+            // Ensure box texture is open if already unlocked
+            this.drawers.sprite.setTexture('drawer-open-sprite');
+          }
+
       },
       true // collides
     );
+    if (GameState.drawerOpened) this.drawers.sprite.setTexture('drawer-open-sprite');
     this.drawers.setBodyOffset(30, 25)    
 
+    // Under drawers
+    this.underdrawers = new ClickableObject(
+      this, 685, 430, 150, 20, 5, 5, 'invisible',
+      () => {
+          this.inventoryOverlay.setMessage("Under drawers");
+      },
+      false // collides
+    );
+    this.underdrawers.setBodyOffset(-100, -65)    
 
-    // Drawers
+
+    // Front Door 
     this.frontdoor = new ClickableObject(
       this, 700, 200, 50, 200, 50, 200, 'invisible',
       () => {
@@ -263,7 +291,6 @@ class BedroomScene extends Phaser.Scene {
       },
       true // collides
     );
-    // this.drawers.setBodyOffset(30, 25)    
 
 
     // Add clickable objects
@@ -280,6 +307,7 @@ class BedroomScene extends Phaser.Scene {
     this.clickableObjects.push(this.glass);
     this.clickableObjects.push(this.box);
     this.clickableObjects.push(this.drawers);
+    this.clickableObjects.push(this.underdrawers);
     this.clickableObjects.push(this.frontdoor);
     this.clickableObjects.push(this.nightstand);
     this.clickableObjects.push(this.closetdoor);

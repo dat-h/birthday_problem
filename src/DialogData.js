@@ -277,4 +277,36 @@ const friendlyNPCDialog = {
   }
 };
 
-export { doorGuardDialog, friendlyNPCDialog };
+
+const bedroomMessages = {
+  objects: {
+    bed: "No. I just woke up",
+    underbed: {
+      a: "Ooh.. I found something!",
+      b: "Just some dust bunnies."
+    },
+    clock:  "uhh.. 4:55?.. I think the clock is broken.",
+    lamp: "No.. I'm afraid of the dark",
+    nightstand: {
+      a: "Ooh goodies!",
+      b: "Just dust..."
+    },
+    closet: "Scary",
+    mirror: "I can't talk to myself",
+    glass: "Nice glass",
+    box: {
+      locked: "The box is locked and need a key.",
+      unlocked: "I took everything already.",
+      key: "You unlocked the box! There was a note inside."
+    },
+    flashlight: "It's a flashlight",
+    drawers: "Closed Drawers",
+    frontdoor: "Closed Door"
+
+  }
+}
+
+
+export { doorGuardDialog, friendlyNPCDialog, bedroomMessages };
+
+
