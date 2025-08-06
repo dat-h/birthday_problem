@@ -7,6 +7,7 @@ import GameState from './GameState.js';
 import InventoryOverlay from './InventoryOverlay.js';
 import DebuggingObject from './DebuggingObject.js';
 
+import { bathroomInitialPosition } from './BathroomScene.js';
 
 class BedroomScene extends Phaser.Scene {
   constructor() {
@@ -19,7 +20,7 @@ class BedroomScene extends Phaser.Scene {
 
   createPlayer() {
     // Create the character sprite in the center using Arcade Physics
-    this.player = this.physics.add.sprite(400, 240, 'bernard-walk', 0);
+    this.player = this.physics.add.sprite(GameState.playerX, GameState.playerY, 'bernard-walk', 0);
     this.player.setDepth(this.player.y);
     this.player.setCollideWorldBounds(true);
 
@@ -35,17 +36,14 @@ class BedroomScene extends Phaser.Scene {
   }
 
   createInventoryItems() {
-    window.inventoryItems.push( inventoryItemsDict['punch-card']);
-    window.inventoryItems.push( inventoryItemsDict['pencil']);   
+    GameState.inventoryItems.push( inventoryItemsDict['punch-card']);
+    GameState.inventoryItems.push( inventoryItemsDict['pencil']);   
   }
 
   saySomething( text ) {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text );
       utterance.voice = GameState.selectedVoice || null;
-      // utterance.lang = 'en-GB'
-      // utterance.rate = 1.5; // faster
-      // utterance.pitch = 2;  // higher pitch
       window.speechSynthesis.speak(utterance);
     }
   }
@@ -146,6 +144,7 @@ class BedroomScene extends Phaser.Scene {
     this.bathroomdoor = new ClickableObject(
       this, 365, 220, 80, 180, 5, 5, 'invisible',
       () => {
+        bathroomInitialPosition();
         this.scene.start('BathroomScene');
       },
       false // collides
@@ -286,8 +285,9 @@ class BedroomScene extends Phaser.Scene {
     this.frontdoor = new ClickableObject(
       this, 700, 200, 50, 200, 50, 200, 'invisible',
       () => {
-          this.inventoryOverlay.setMessage("Closed door");
-          this.scene.start('DoorScene');
+        GameState.setPlayerPosition(this.player.x, this.player.y);
+        this.inventoryOverlay.setMessage("Closed door");
+        this.scene.start('DoorScene');
       },
       true // collides
     );
@@ -324,11 +324,13 @@ class BedroomScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.fadeIn(500, 0, 0, 0);
+    GameState.lastScene = 'BedroomScene';
+
     this.debugGraphics = new DebuggingObject(this);
-    // if (!window.bgMusic) {
-    //   window.bgMusic = this.sound.add('bg-music', { loop: true, volume: 0.5 });
-    //   window.bgMusic.play();
-    // }    
+    if (!window.bgMusic) {
+      window.bgMusic = this.sound.add('bg-music', { loop: true, volume: 0.5 });
+      window.bgMusic.play();
+    }    
 
     // Add background image to fit the scene (800x600), positioned at the top
     const bg = this.add.image(400, -60, 'bedroom-bg-light').setOrigin(0.5, 0);
@@ -338,7 +340,7 @@ class BedroomScene extends Phaser.Scene {
     this.target = new Phaser.Math.Vector2(this.player.x, this.player.y);
 
     // Carry over inventory
-    if (!window.inventoryItems) window.inventoryItems = [];
+    if (! GameState.inventoryItems) GameState.inventoryItems = [];
     // Inventory overlay utility
     this.inventoryOverlay = new InventoryOverlay(this);
     if (!GameState.wokeUp ) {
@@ -359,6 +361,9 @@ class BedroomScene extends Phaser.Scene {
     this.debugGraphics.updateFloorGraphics( this.floorPolygon.points);
 
     this.createSceneObjects();
+
+
+    // First time in the scene
     GameState.wokeUp = true;
     // Move player to pointer on click (except clickable objects)
     this.input.on('pointerdown', (pointer) => {
@@ -454,3 +459,7 @@ class BedroomScene extends Phaser.Scene {
 }
 
 export default BedroomScene;
+
+export function bedroomInitialPosition() {
+  GameState.setPlayerPosition(400, 240);
+}

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import GameState from './GameState.js';
 
 /**
  * InventoryOverlay handles inventory UI, state, and messaging for all scenes.
@@ -15,8 +16,8 @@ class InventoryOverlay {
     this.padding = opts.padding ?? 24;
     this.itemsPerRow = opts.itemsPerRow ?? 5;
     this.depth = opts.depth ?? 10000;
-    this.inventoryItems = window.inventoryItems ?? [];
-    window.inventoryItems = this.inventoryItems; // ensure global
+    this.inventoryItems = GameState.inventoryItems ?? [];
+    GameState.inventoryItems = this.inventoryItems; // ensure global
     this.selectedIndex = null;
     this.selectedItem = null;
     this.iconSprites = [];
@@ -35,6 +36,11 @@ class InventoryOverlay {
       .setDepth(10001).setInteractive();
     this.menu_btn.on('pointerdown', () => {
       this.scene.scene.pause();
+      if (this.scene.player) {
+        GameState.playerX = this.scene.player.x;
+        GameState.playerY = this.scene.player.y;
+      }
+      
       this.scene.scene.launch('MenuScene', { pausedScene: this.scene.scene.key });
     });
 
@@ -95,13 +101,13 @@ class InventoryOverlay {
 
   addItem(item) {
     this.inventoryItems.push(item);
-    window.inventoryItems = this.inventoryItems;
+    GameState.inventoryItems = this.inventoryItems;
     this.draw();
   }
 
   removeItemByKey(key) {
     this.inventoryItems = this.inventoryItems.filter(i => i.key !== key);
-    window.inventoryItems = this.inventoryItems;
+    GameState.inventoryItems = this.inventoryItems;
     this.draw();
   }
 
@@ -151,7 +157,7 @@ class InventoryOverlay {
               // Remove both items, add result
               this.inventoryItems = items.filter((_, idx) => idx !== this.selectedIndex && idx !== i);
               this.inventoryItems.push(combineAction.result);
-              window.inventoryItems = this.inventoryItems;
+              GameState.inventoryItems = this.inventoryItems;
             }
             this.setMessage(combineAction.message);
             this.selectedIndex = null;

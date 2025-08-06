@@ -55,19 +55,21 @@ class PreloadScene extends Phaser.Scene {
     this.load.image('laundry-hamper', 'assets/img/scene/laundry-hamper.png');
 
     // Inventory items
+
+    this.load.image('batterypair', 'assets/img/items/batterypair.png');
+    this.load.image('clock-hands', 'assets/img/items/clock-hands.png');
+    this.load.image('batteries', 'assets/img/items/d_battery.png');
+    this.load.image('dirty-sock', 'assets/img/items/dirty-sock.png');
     this.load.image('flashlight-off', 'assets/img/items/flashlight-off.png');
     this.load.image('flashlight-on', 'assets/img/items/flashlight-on.png');
-    this.load.image('dirty-sock', 'assets/img/items/dirty-sock.png');
-    this.load.image('batteries', 'assets/img/items/d_battery.png');
-    this.load.image('batterypair', 'assets/img/items/batterypair.png');
-    this.load.image('punch-card', 'assets/img/items/punch-card.png');
+    this.load.image('glass-full', 'assets/img/items/glass-full.png');
+    this.load.image('glass', 'assets/img/items/glass.png');
     this.load.image('key', 'assets/img/items/key.png');
     this.load.image('notepad', 'assets/img/items/notepad.png');
     this.load.image('pencil', 'assets/img/items/pencil.png');
-    this.load.image('clock-hands', 'assets/img/items/clock-hands.png');
     this.load.image('pliers', 'assets/img/items/pliers.png');
-    this.load.image('glass', 'assets/img/items/glass.png');
-    this.load.image('glass-full', 'assets/img/items/glass-full.png');
+    this.load.image('punch-card', 'assets/img/items/punch-card.png');
+    this.load.image('bow-tie', 'assets/img/items/red-bowtie.png');
     
     // Character
     this.load.image('bernard-face', 'assets/img/bernard-face.png');

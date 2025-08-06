@@ -57,7 +57,7 @@ class ClosetScene extends Phaser.Scene {
     this.debugGraphics = new DebuggingObject(this);
 
     // Carry over inventory
-    if (!window.inventoryItems) window.inventoryItems = [];
+    if (!GameState.inventoryItems) GameState.inventoryItems = [];
 
     // Add background (placeholder color)
     this.cameras.main.setBackgroundColor('#021e60ff'); // light blue for bathroom

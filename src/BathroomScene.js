@@ -5,6 +5,7 @@ import { inventoryItemsDict } from './InventoryOverlay.js';
 
 import DebuggingObject from './DebuggingObject.js';
 import GameState from './GameState.js';
+import { bedroomInitialPosition } from './BedroomScene.js';
 
 class BathroomScene extends Phaser.Scene {
   constructor() {
@@ -18,7 +19,7 @@ class BathroomScene extends Phaser.Scene {
 
   createPlayer() {
     // Create the character sprite in the center using Arcade Physics
-    this.player = this.physics.add.sprite(400, 340, 'bernard-walk', 0); // 340
+    this.player = this.physics.add.sprite(GameState.playerX, GameState.playerY, 'bernard-walk', 0);
     this.player.setDepth(this.player.y);
     this.player.setCollideWorldBounds(true);
 
@@ -44,14 +45,20 @@ class BathroomScene extends Phaser.Scene {
     // Door 
     this.door = new ClickableObject(
       this, 370, 440, 100, 40, 5, 5, 'invisible',
-      () => this.scene.start('BedroomScene'),
+      () => {
+        bedroomInitialPosition();
+        this.scene.start('BedroomScene');
+      },
       false // collides
     );
     this.door.setBodyOffset(0, -50)
 
     this.toilet = new ClickableObject(
-      this, 200, 320, 60, 80, 60, 80, 'invisible',
-      () => this.scene.start('ToiletScene'),
+      this, 200, 320, 60, 80, 60, 80, 'invisible',  
+      () => {
+        GameState.setPlayerPosition(this.player.x, this.player.y);
+        this.scene.start('ToiletScene');
+      },
       false // collides
     );
 
@@ -162,10 +169,12 @@ class BathroomScene extends Phaser.Scene {
 
 
   create() {
+    GameState.lastScene = 'BathroomScene';
+    this.cameras.main.fadeIn(500, 0, 0, 0);
     this.debugGraphics = new DebuggingObject(this);
 
     // Carry over inventory
-    if (!window.inventoryItems) window.inventoryItems = [];
+    if (!GameState.inventoryItems) GameState.inventoryItems = [];
 
     // Add background (placeholder color)
     this.cameras.main.setBackgroundColor('#021e60ff'); // light blue for bathroom
@@ -274,6 +283,9 @@ class BathroomScene extends Phaser.Scene {
 
 export default BathroomScene;
 
+export function bathroomInitialPosition() {
+  GameState.setPlayerPosition(400, 340);
+}
 
 export class ToiletScene extends Phaser.Scene {
   constructor() {
@@ -282,10 +294,11 @@ export class ToiletScene extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.fadeIn(500, 0, 0, 0);
     this.debugGraphics = new DebuggingObject(this);
 
     // Carry over inventory
-    if (!window.inventoryItems) window.inventoryItems = [];
+    if (!GameState.inventoryItems) GameState.inventoryItems = [];
     this.clickableObjects = [];
     // Add background (placeholder color)
     this.cameras.main.setBackgroundColor('#021e60ff'); // light blue for bathroom
@@ -301,6 +314,10 @@ export class ToiletScene extends Phaser.Scene {
       if (pointer.y >= 470 && pointer.y <= 600) {
         return;
       }
+
+      if (pointer.x <= 65 && pointer.y <= 65) {
+        return;
+      }      
       // Ignore if pointer is over any clickable object
       for (const obj of this.clickableObjects) {
         const s = obj.sprite;

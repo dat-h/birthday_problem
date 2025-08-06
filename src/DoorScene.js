@@ -65,15 +65,24 @@ class DoorScene extends Phaser.Scene {
     // Inventory overlay utility
     this.inventoryOverlay = new InventoryOverlay(this);
     
+    if( this.dialogSystem ) {
+      this.dialogSystem.isActive = false;      
+      this.dialogSystem.destroy();
+    }
+
     this.input.on('pointerdown', (pointer) => {
       // Don't allow scene changes if dialog is active
       if (this.dialogSystem && this.dialogSystem.isActive) {
         return;
       }
-
+      // Ignore if clicking in the inventory area
       if (pointer.y >= 470 && pointer.y <= 600) {
         return;
       }
+      // Ignore if clicking on the menu button
+      if (pointer.x <= 65 && pointer.y <= 65) {
+        return;
+      }      
 
       // Check if clicking on the door guard (the door area)
       if (pointer.x >= this.rectTopLeft.x && pointer.x <= this.rectBottomRight.x && pointer.y >= this.rectTopLeft.y && pointer.y <= this.rectBottomRight.y) {
