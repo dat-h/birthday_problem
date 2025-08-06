@@ -1,12 +1,12 @@
 
 import Phaser from 'phaser';
-import TitleScene from './TitleScene.js';
-import BedroomScene from './BedroomScene.js';
-import BathroomScene, { ToiletScene } from './BathroomScene.js';
-import PreloadScene from './PreloadScene.js';
-import WakeUpScene from './AnimatedScene.js';
-import MenuScene from './MenuScene.js';
-import DoorScene from './DoorScene.js';
+import TitleScene from './scenes/TitleScene.js';
+import BedroomScene from './scenes/BedroomScene.js';
+import BathroomScene, { ToiletScene } from './scenes/BathroomScene.js';
+import PreloadScene from './scenes/PreloadScene.js';
+import WakeUpScene from './scenes/AnimatedScene.js';
+import MenuScene from './scenes/MenuScene.js';
+import DoorScene from './scenes/DoorScene.js';
 
 const config = {
   type: Phaser.AUTO,

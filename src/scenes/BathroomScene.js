@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import ClickableObject from './ClickableObject.js';
-import InventoryOverlay from './InventoryOverlay.js';
-import { inventoryItemsDict } from './InventoryOverlay.js';
+import ClickableObject from '../ClickableObject.js';
+import InventoryOverlay from '../InventoryOverlay.js';
+import { inventoryItemsDict } from '../InventoryOverlay.js';
 
-import DebuggingObject from './DebuggingObject.js';
-import GameState from './GameState.js';
+import DebuggingObject from '../DebuggingObject.js';
+import GameState from '../GameState.js';
 import { bedroomInitialPosition } from './BedroomScene.js';
 
 class BathroomScene extends Phaser.Scene {

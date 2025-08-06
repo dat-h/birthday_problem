@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import GameState from './GameState.js';
+import GameState from '../GameState.js';
 
 class MenuScene extends Phaser.Scene {
     constructor() {

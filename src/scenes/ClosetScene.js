@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import ClickableObject from './ClickableObject.js';
-import InventoryOverlay from './InventoryOverlay.js';
-import DebuggingObject from './DebuggingObject.js';
+import ClickableObject from '../ClickableObject.js';
+import InventoryOverlay from '../InventoryOverlay.js';
+import DebuggingObject from '../DebuggingObject.js';
 
 class ClosetScene extends Phaser.Scene {
   constructor() {

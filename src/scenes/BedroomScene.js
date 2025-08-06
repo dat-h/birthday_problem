@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
-import ClickableObject from './ClickableObject.js';
-import { GetClosestPoint } from './ClickableObject.js';
-import { inventoryItemsDict } from './InventoryOverlay.js';
-import GameState from './GameState.js';
+import ClickableObject from '../ClickableObject.js';
+import { GetClosestPoint } from '../ClickableObject.js';
+import { inventoryItemsDict } from '../InventoryOverlay.js';
+import GameState from '../GameState.js';
 
-import InventoryOverlay from './InventoryOverlay.js';
-import DebuggingObject from './DebuggingObject.js';
+import InventoryOverlay from '../InventoryOverlay.js';
+import DebuggingObject from '../DebuggingObject.js';
 
 import { bathroomInitialPosition } from './BathroomScene.js';
 
