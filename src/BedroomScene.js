@@ -105,7 +105,13 @@ class BedroomScene extends Phaser.Scene {
       this, 370, 60, 40, 40, 5, 5, 'invisible',
       () => {
         const selectedItem = getSelectedInventoryItem();
-        if (selectedItem) {
+        if (selectedItem && selectedItem.name === 'pliers') {
+          this.inventoryOverlay.setMessage("I fixed the clock");
+          this.inventoryOverlay.removeItemByKey('pliers');
+          this.inventoryOverlay.addItem(inventoryItemsDict['clock-hands']);
+          this.inventoryOverlay.selectedIndex = null;
+          this.inventoryOverlay.draw();
+        } else if (selectedItem) {
           genericCannotCombineMessage();
         } else {
           this.inventoryOverlay.setMessage("uhh.. 4:55?.. I think the clock is broken.");
@@ -115,7 +121,6 @@ class BedroomScene extends Phaser.Scene {
       false // collides
     );
     this.clock.setBodyOffset(0, 120)
-
 
     // Lamp
     this.lamp = new ClickableObject(
@@ -155,12 +160,20 @@ class BedroomScene extends Phaser.Scene {
     this.closetdoor = new ClickableObject(
       this, 515, 200, 65, 160, 5, 5, 'invisible',
       () => {
-        this.inventoryOverlay.setMessage("Scary");
+        const selectedItem = getSelectedInventoryItem();
+        if (selectedItem && selectedItem.name === 'flashlight-on') {
+          this.inventoryOverlay.setMessage("Alright I'll try");
+          this.inventoryOverlay.selectedIndex = null;
+          this.inventoryOverlay.draw();
+
+          // TODO: Load a new scene with the closet
+          // this.scene.start('ClosetScene');
+        } else {
+          this.inventoryOverlay.setMessage("Scary");
+        }        
       },
       false // collides
     );
-
-
 
     // Mirror
     this.mirror = new ClickableObject(
@@ -195,7 +208,7 @@ class BedroomScene extends Phaser.Scene {
       () => {
       const selectedItem = getSelectedInventoryItem();
       if (!GameState.boxUnlocked) {
-        if (selectedItem && selectedItem.key === 'key') {
+        if (selectedItem && selectedItem.name === 'key') {
         // Unlock the box
         GameState.boxUnlocked = true;
         this.inventoryOverlay.setMessage("You unlocked the box! There was a note inside.");
@@ -251,15 +264,15 @@ class BedroomScene extends Phaser.Scene {
           if (!GameState.drawerOpened) {
             // Open the drawer
             GameState.drawerOpened = true;
-            this.inventoryOverlay.setMessage("You unlocked the box! There was a note inside.");
+            this.inventoryOverlay.setMessage("Cool - a bow tie!");
             // Optionally add a new item to inventory, e.g. note
-            this.inventoryOverlay.addItem(inventoryItemsDict['notepad']);
+            this.inventoryOverlay.addItem(inventoryItemsDict['bow-tie']);
             this.inventoryOverlay.selectedIndex = null;
             this.inventoryOverlay.draw();
             // Change box texture to open
             this.drawers.sprite.setTexture('drawer-open-sprite'); 
           } else {
-            this.inventoryOverlay.setMessage("The box is already unlocked.");
+            this.inventoryOverlay.setMessage("Nothing left in the drawer");
             // Ensure box texture is open if already unlocked
             this.drawers.sprite.setTexture('drawer-open-sprite');
           }
@@ -328,7 +341,7 @@ class BedroomScene extends Phaser.Scene {
 
     this.debugGraphics = new DebuggingObject(this);
     if (!window.bgMusic) {
-      window.bgMusic = this.sound.add('bg-music', { loop: true, volume: 0.5 });
+      window.bgMusic = this.sound.add('bg-music', { loop: true, volume: GameState.musicVolume });
       window.bgMusic.play();
     }    
 

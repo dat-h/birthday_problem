@@ -70,7 +70,18 @@ class BathroomScene extends Phaser.Scene {
 
     this.sink = new ClickableObject(
       this, 365, 250, 85, 40, 5, 5, 'invisible',
-      () => this.inventoryOverlay.setMessage("it's a sink"),
+      () => {
+        const selectedItem = getSelectedInventoryItem();
+        if (selectedItem && selectedItem.name === 'glass') {
+          this.inventoryOverlay.setMessage("delicious glass of water");
+          this.inventoryOverlay.removeItemByKey('glass');
+          this.inventoryOverlay.addItem(inventoryItemsDict['glass-full']);
+          this.inventoryOverlay.selectedIndex = null;
+          this.inventoryOverlay.draw();
+        } else {
+          this.inventoryOverlay.setMessage("it's a sink");
+        }
+      },
       false // collides
     );
     this.sink.setBodyOffset(0, -50)

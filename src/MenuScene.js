@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import GameState from './GameState.js';
-import BedroomScene from './BedroomScene.js';
 
 class MenuScene extends Phaser.Scene {
     constructor() {
@@ -11,11 +10,12 @@ class MenuScene extends Phaser.Scene {
     }
 
     saySomething( text ) {
-        if ('speechSynthesis' in window) {
+        if ('speechSynthesis' in window && GameState.sfxVolume > 0) {
             const utterance = new SpeechSynthesisUtterance(text );
             // utterance.lang = 'en-GB'
             utterance.rate = 1.5; // faster
             utterance.pitch = 2;  // higher pitch
+            utterance.volume = GameState.sfxVolume; // Use voice volume setting
             window.speechSynthesis.speak(utterance);
         }
     }
@@ -44,9 +44,8 @@ class MenuScene extends Phaser.Scene {
         graphics.strokeRect(bgX, bgY, bgWidth, bgHeight);
 
 
-        // Set muted to default
-        this.sound.volume = GameState.volume;
-        this.sound.mute = GameState.isMuted;
+        this.setMusicVolume(GameState.musicVolume);
+        this.setSFXVolume(GameState.sfxVolume);
 
         // Resume button
         const resumeButton = this.add.text(width / 2, height / 2 - 140, 'Resume Game', { font: '32px Berkelium', fill: '#fff' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
@@ -55,25 +54,83 @@ class MenuScene extends Phaser.Scene {
             this.scene.resume(pausedScene);
         });       
 
-        const soundButton = this.add.text(width / 2, height / 2 - 80,  `Sound: ${GameState.isMuted ? 'OFF' : 'ON'}`, { font: '32px Berkelium', fill: '#fff' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        // Music Volume Slider
+        const musicLabel = this.add.text(width / 2, height / 2 - 100, 'Music Volume', { font: '24px Berkelium', fill: '#fff' }).setOrigin(0.5);
         
-        soundButton.on('pointerdown', () => {
-            GameState.isMuted = !GameState.isMuted;
-            this.sound.mute = GameState.isMuted;
-            soundButton.setText(`Sound: ${GameState.isMuted ? 'OFF' : 'ON'}`);
+        // Music slider background
+        const musicSliderBg = this.add.graphics();
+        musicSliderBg.fillStyle(0x333333);
+        musicSliderBg.fillRect(width / 2 - 100, height / 2 - 75, 200, 10);
+        musicSliderBg.lineStyle(2, 0xffffff);
+        musicSliderBg.strokeRect(width / 2 - 100, height / 2 - 75, 200, 10);
+        
+        // Make music slider background interactive for clicks
+        const musicSliderHitArea = this.add.rectangle(width / 2, height / 2 - 70, 200, 20, 0x000000, 0)
+            .setInteractive({ useHandCursor: true });
+        
+        // Music slider handle
+        const musicHandle = this.add.circle(width / 2 - 100 + (GameState.musicVolume * 200), height / 2 - 70, 8, 0xffffff)
+            .setInteractive({ useHandCursor: true, draggable: true });
+        
+        // Music volume text
+        const musicVolumeText = this.add.text(width / 2, height / 2 - 55, `${Math.round(GameState.musicVolume * 100)}%`, { font: '16px Berkelium', fill: '#fff' }).setOrigin(0.5);
+        
+        musicHandle.on('drag', (pointer, dragX) => {
+            const sliderX = Math.max(width / 2 - 100, Math.min(width / 2 + 100, dragX));
+            musicHandle.x = sliderX;
+            const volume = (sliderX - (width / 2 - 100)) / 200;
+            this.setMusicVolume(volume);
+            musicVolumeText.setText(`${Math.round(GameState.musicVolume * 100)}%`);
+        });
+        
+        // Handle clicks on music slider track
+        musicSliderHitArea.on('pointerdown', (pointer) => {
+            const sliderX = Math.max(width / 2 - 100, Math.min(width / 2 + 100, pointer.x));
+            musicHandle.x = sliderX;
+            const volume = (sliderX - (width / 2 - 100)) / 200;
+            this.setMusicVolume(volume);
+            musicVolumeText.setText(`${Math.round(GameState.musicVolume * 100)}%`);
         });
 
-        // Voices On - off button
-        const voicesButton = this.add.text(width / 2, height / 2 - 40, `Voices: ${GameState.isVoicesOn ? 'ON' : 'OFF'}`, { font: '32px Berkelium', fill: '#fff' }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-        voicesButton.on('pointerdown', () => {
-            GameState.isVoicesOn = !GameState.isVoicesOn;
-            if (GameState.isVoicesOn) {
-                this.saySomething("Voices are now ON");
-            } else {
-                this.saySomething("Voices are now OFF");
+        // Sound Effects & Voice Volume Slider
+        const sfxLabel = this.add.text(width / 2, height / 2 - 30, 'Sound Effects & Voice', { font: '24px Berkelium', fill: '#fff' }).setOrigin(0.5);
+        
+        // Voice slider background
+        const voiceSliderBg = this.add.graphics();
+        voiceSliderBg.fillStyle(0x333333);
+        voiceSliderBg.fillRect(width / 2 - 100, height / 2 - 5, 200, 10);
+        voiceSliderBg.lineStyle(2, 0xffffff);
+        voiceSliderBg.strokeRect(width / 2 - 100, height / 2 - 5, 200, 10);
+        
+        // Make voice slider background interactive for clicks
+        const voiceSliderHitArea = this.add.rectangle(width / 2, height / 2, 200, 20, 0x000000, 0)
+            .setInteractive({ useHandCursor: true });
+        
+        // SFX slider handle
+        const sfxHandle = this.add.circle(width / 2 - 100 + (GameState.sfxVolume * 200), height / 2, 8, 0xffffff)
+            .setInteractive({ useHandCursor: true, draggable: true });
+        
+        // SFX volume text
+        const sfxVolumeText = this.add.text(width / 2, height / 2 + 15, `${Math.round(GameState.sfxVolume * 100)}%`, { font: '16px Berkelium', fill: '#fff' }).setOrigin(0.5);
+        
+        sfxHandle.on('drag', (pointer, dragX) => {
+            const sliderX = Math.max(width / 2 - 100, Math.min(width / 2 + 100, dragX));
+            sfxHandle.x = sliderX;
+            GameState.sfxVolume = (sliderX - (width / 2 - 100)) / 200;
+            sfxVolumeText.setText(`${Math.round(GameState.sfxVolume * 100)}%`);
+        });
+        
+        // Handle clicks on SFX slider track
+        voiceSliderHitArea.on('pointerdown', (pointer) => {
+            const sliderX = Math.max(width / 2 - 100, Math.min(width / 2 + 100, pointer.x));
+            sfxHandle.x = sliderX;
+            GameState.sfxVolume = (sliderX - (width / 2 - 100)) / 200;
+            sfxVolumeText.setText(`${Math.round(GameState.sfxVolume * 100)}%`);
+            
+            // Test voice when clicking
+            if (GameState.sfxVolume > 0) {
+                this.saySomething("Sound effects volume set");
             }
-            voicesButton.setText(`Voices: ${GameState.isVoicesOn ? 'ON' : 'OFF'}`);
-
         });
 
         // Save Game button
@@ -172,20 +229,47 @@ class MenuScene extends Phaser.Scene {
         this.add.text(width - 10, height - 10, `v${version}`, { font: '16px Berkelium', fill: '#888' }).setOrigin(1, 1);
     }
 
-    setVolume(value) {
+    // setVolume(value) {
+    //     // Clamp between 0 and 1
+    //     value = Math.max(0, Math.min(1, value));
+    //     GameState.volumeLevel = value; // store slider position (0-1)
+    //     // Power curve for perceived loudness with a minimum floor
+    //     const minVolume = 0.005;
+    //     const maxVolume = 1;
+    //     const power = 2.5;
+    //     const logVolume = minVolume + (maxVolume - minVolume) * Math.pow(value, power);
+    //     GameState.volume = logVolume;
+    //     this.sound.volume = logVolume;
+    // }
+
+    setMusicVolume(value) {
         // Clamp between 0 and 1
         value = Math.max(0, Math.min(1, value));
-        GameState.volumeLevel = value; // store slider position (0-1)
-        // Power curve for perceived loudness with a minimum floor
+        GameState.musicVolume = value;
+
         const minVolume = 0.005;
         const maxVolume = 1;
         const power = 2.5;
         const logVolume = minVolume + (maxVolume - minVolume) * Math.pow(value, power);
-        GameState.volume = logVolume;
-        this.sound.volume = logVolume;
+        
+        if (window.bgMusic) {
+          window.bgMusic.setVolume(logVolume);
+        }
     }
 
+    setSFXVolume(value) {
+        // Clamp between 0 and 1
+        value = Math.max(0, Math.min(1, value));
+        GameState.sfxVolume = value;
 
+        const minVolume = 0.005;
+        const maxVolume = 1;
+        const power = 2.5;
+        const logVolume = minVolume + (maxVolume - minVolume) * Math.pow(value, power);
+        
+        // this.sound.volume = logVolume;
+    }
+    
     update() {        
     }
 

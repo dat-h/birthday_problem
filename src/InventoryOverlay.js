@@ -106,7 +106,7 @@ class InventoryOverlay {
   }
 
   removeItemByKey(key) {
-    this.inventoryItems = this.inventoryItems.filter(i => i.key !== key);
+    this.inventoryItems = this.inventoryItems.filter(i => i.name !== key);
     GameState.inventoryItems = this.inventoryItems;
     this.draw();
   }
@@ -133,7 +133,7 @@ class InventoryOverlay {
       const col = localIdx % this.itemsPerRow;
       const x = this.x + 375 + col * (this.iconSize + this.padding);
       const y = this.y + 30 + row * (this.iconSize);
-      const sprite = this.scene.add.image(x, y, item.key)
+      const sprite = this.scene.add.image(x, y, item.name)
         .setDisplaySize(this.iconSize, this.iconSize)
         .setDepth(this.depth + 1)
         .setInteractive({ useHandCursor: true });
@@ -148,9 +148,9 @@ class InventoryOverlay {
           this.selectedItem = items[this.selectedIndex];
           const selectedItem = items[this.selectedIndex];
 
-          let combineAction = selectedItem.actions?.combine?.[item.key];
+          let combineAction = selectedItem.actions?.combine?.[item.name];
           if (!combineAction) {
-            combineAction = item.actions?.combine?.[selectedItem.key];
+            combineAction = item.actions?.combine?.[selectedItem.name];
           }
           if (combineAction) {
             if ( combineAction.result ) {
@@ -200,7 +200,7 @@ export const inventoryItemsDict = {};
 
 Object.assign(inventoryItemsDict, {
   'flashlight-off': {
-    key: 'flashlight-off',
+    name: 'flashlight-off',
     message: "It's a flashlight.",
     actions: {
       combine: {
@@ -213,13 +213,13 @@ Object.assign(inventoryItemsDict, {
     }
   },
   'flashlight-on': {
-    key: 'flashlight-on',
+    name: 'flashlight-on',
     message: "The flashlight lights the way.",
     actions: {
     }
   },  
   'batteries': {
-    key: 'batteries',
+    name: 'batteries',
     message: "It's a D battery.",
     actions: {
       combine: {
@@ -232,7 +232,7 @@ Object.assign(inventoryItemsDict, {
     }
   },
   'batterypair': {
-    key: 'batterypair',
+    name: 'batterypair',
     message: "A pair of D batteries.",
     actions: {
       combine: {
@@ -244,42 +244,52 @@ Object.assign(inventoryItemsDict, {
     }
   },
   'dirty-sock': {
-    key: 'dirty-sock',
+    name: 'dirty-sock',
     message: "A dirty sock. Gross!",
     actions: {}
   },
   'punch-card': {
-    key: 'punch-card',
+    name: 'punch-card',
     message: "A punch card",
     actions: {}
   },
   'key': {
-    key: 'key',
+    name: 'key',
     message: "Where does this key go?",
     actions: {}
   },
   'notepad': {
-    key: 'notepad',
+    name: 'notepad',
     message: "Nothing on it",
     actions: {}
   },
   'pencil': {
-    key: 'pencil',
+    name: 'pencil',
     message: "Nothing on it",
     actions: {}
   },
   'clock-hands': {
-    key: 'clock-hands',
+    name: 'clock-hands',
     message: "Nothing on it",
     actions: {}
   },
   'pliers': {
-    key: 'pliers',
+    name: 'pliers',
     message: "Nothing on it",
     actions: {}
   },
   'glass': {
-    key: 'glass',
+    name: 'glass',
+    message: "Nothing on it",
+    actions: {}
+  },
+  'bow-tie': {
+    name: 'bow-tie',
+    message: "Nothing on it",
+    actions: {}
+  },
+  'glass-full': {
+    name: 'glass-full',
     message: "Nothing on it",
     actions: {}
   }
